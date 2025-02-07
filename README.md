@@ -4,6 +4,6 @@ We plan to design a web application that will allow CWRU students to upload thei
 
 We will write our frontend in Typescript, using Next.js, React and Tailwind CSS. We will write our backend in Python using FastAPI, and we will use PostgreSQL as our database and object storage solution.
 
-This project will be built by the joint effort of omeikeseth@gmail.com, jasonlai682@gmail.com, jst94@case.edu, smb318@case.edu.
+This project will be built by the team effort of omeikeseth@gmail.com, jasonlai682@gmail.com, jst94@case.edu, smb318@case.edu.
 
 
