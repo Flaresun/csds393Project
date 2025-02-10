@@ -12,6 +12,9 @@ import uot_logo from "./uot_logo.png";
 import unknown_picture from "./unknown_picture.png";
 import jason_picture from "./jason_picture.png";
 import sean_picture from "./sean_picture.png";
+import notes_logo from "./notes.webp";
+import ai_brain from "./AI_brain.jpeg";
+import more_coming_soon from "./more-coming-soon.png";
 export const assets = {
     logo,
     cwru_logo,
@@ -26,5 +29,8 @@ export const assets = {
     uot_logo,
     unknown_picture,
     jason_picture,
-    sean_picture
+    sean_picture,
+    notes_logo,
+    ai_brain,
+    more_coming_soon,
 }
