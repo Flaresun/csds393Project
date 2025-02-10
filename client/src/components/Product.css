@@ -1,0 +1,17 @@
+#notes-upload {
+    box-shadow:
+    0 0 60px 15px #fff,  /* inner white */
+    0 0 100px 30px rgb(217, 121, 42); /* middle magenta */
+}
+
+#ai-brain {
+    box-shadow:
+    0 0 60px 15px #fff,  /* inner white */
+    0 0 100px 30px rgb(10, 59, 192); /* middle magenta */
+}
+
+#more-features {
+    box-shadow:
+    0 0 60px 15px #fff,  /* inner white */
+    0 0 100px 30px rgb(77, 55, 3); /* middle magenta */
+}
