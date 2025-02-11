@@ -34,9 +34,10 @@ class SignupUser(BaseModel):
 @app.post("/signup")
 async def signup(user :SignupUser ):
     params = list(user)
-    
-    email, password, role = params[0][1], params[1][1], params[2][1]
 
+    email, password, role = params[0][1], params[1][1], params[2][1]
+    if email == "" or password == "" :
+        return JSONResponse(content={"success":False, "message":"Email Password and Role Required"},status_code=200,headers={"X-Error": "Custom Error"})
     # Prisma 
     try:
         prisma = Prisma()
@@ -69,7 +70,8 @@ class LoginUser(BaseModel):
 async def login(user : LoginUser):
     params : list[LoginUser] = list(user)
     email, password = params[0][1], params[1][1]
-
+    if email == "" or password == "" :
+        return JSONResponse(content={"success":False, "message":"Email Password and Role Required"},status_code=200,headers={"X-Error": "Custom Error"})
     try:
         await db.disconnect()
         await db.connect()

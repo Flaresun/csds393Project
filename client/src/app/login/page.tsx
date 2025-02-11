@@ -6,7 +6,7 @@ import "../../components/Hero.css"; // Assuming this file exists for custom styl
 
 const AuthPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [formType, setFormType] = useState<"login" | "signup">("login"); // Toggle between login and signup
+  const [formType, setFormType] = useState<"login" | "signup">("signup"); // Toggle between login and signup
   const [role, setRole] = useState<string>("Student"); // State for the role dropdown
   const [email, setEmail] = useState<string>(""); // State for the role dropdown
   const [password, setPassword] = useState<string>(""); // State for the role dropdown
