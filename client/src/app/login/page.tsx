@@ -7,7 +7,7 @@ import "../../components/Hero.css"; // Assuming this file exists for custom styl
 const AuthPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [formType, setFormType] = useState<"login" | "signup">("login"); // Toggle between login and signup
-  const [role, setRole] = useState<string>(""); // State for the role dropdown
+  const [role, setRole] = useState<string>("Student"); // State for the role dropdown
   const [email, setEmail] = useState<string>(""); // State for the role dropdown
   const [password, setPassword] = useState<string>(""); // State for the role dropdown
 
@@ -21,9 +21,36 @@ const AuthPage = () => {
     setRole(e.target.value);
   };
 
-  const handleSubmit = (e : any) : any => {
+  const handleSubmit = async (e : any) : Promise<any> => {
     e.preventDefault();
-    console.log(role,email,password, formType)
+    try {
+      if (formType === "signup") {
+        
+        const res = await fetch("/api/signup", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email:email, password:password, role:role }),
+        })
+
+        const data = await res.json();
+        console.log(data)
+      } else {
+        const res = await fetch("/api/login", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email:email, password:password}),
+        })
+
+        const data = await res.json();
+        console.log(data)
+      }
+    } catch (err) {("/api/signup")
+      console.log(err)
+    }
   }
 
   return (
