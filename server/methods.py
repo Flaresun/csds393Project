@@ -24,6 +24,8 @@ async def get_all_users(db):
         return {}
     
 async def get_user_by_email(db,email : str) -> dict:
+    await db.disconnect()
+    await db.connect()
     try:
         users = await db.user.find_many(
             where={
