@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {assets} from "../assets/asset.js";
 import Image from 'next/image';
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -13,9 +13,12 @@ const Navbar = () => {
         setOpen((prev) => !prev)
   }
   const router = useRouter();
-  addEventListener('scroll', (e) => {
-    setOpen(false)
-  })
+  useEffect(() => {
+    window.addEventListener('scroll', (e) => {
+        setOpen(false)
+      })
+  },[])
+  
   return (
     <div className="flex sm:flex-row items-center justify-between ">
         <div className="flex">
