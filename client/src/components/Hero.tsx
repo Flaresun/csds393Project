@@ -23,12 +23,12 @@ const Hero = () => {
 
     return (
         <div id="hero" className='pt-20 px-[2rem] sm:px-[10rem]'>
-            <div className="flex flex-col items-center text-8xl dark:text-slate-100 text-slate-900 text-wrap">
+            <div className="flex flex-col items-center text-8xl text-slate-100  text-wrap">
 
                 <div className="flex mt-5">
                     <p className="">Ace Your Studies with <span className="inline-block translate-y-4 whitespace-normal"><Image src={assets.logo} alt="Logo" width={270}/></span> </p>
                 </div>
-                <div className="flex text-xl sm:text-2xl mt-5">
+                <div className="flex text-xl sm:text-2xl mt-5 items-center justify-center text-center">
                     <p className="">Our goal is to empower students worldwide with the help of advanced AI Features which will studying much more efficient and beneficial for students hoping not
                                     only to ace their exams but also looking to understand their topic of choice on a deeper level. 
                     </p>

@@ -28,7 +28,7 @@ const Navbar = () => {
              width={200}
              />
         </div>
-        <div id="box-gradient" className="hidden lg:flex flex-row items-center justify-center border text-sm sm:text-xl rounded-3xl px-6 py-3">
+        <div id="box-gradient" className="hidden lg:flex flex-row items-center justify-center border-4 border-violet-500 text-sm sm:text-xl rounded-3xl px-6 py-3">
             <a href="#hero" className="cursor-pointer mr-10">Home</a>
             <a href="#team" className="cursor-pointer mr-10">Team</a>
             <a href="#product" className="cursor-pointer mr-10">Product</a>
