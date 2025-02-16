@@ -28,7 +28,7 @@ const Navbar = () => {
              width={200}
              />
         </div>
-        <div id="box-gradient" className="hidden lg:flex flex-row items-center justify-center border-4 border-violet-500 text-sm sm:text-xl rounded-3xl px-6 py-3">
+        <div id="box-gradient" className="hidden text-slate-100 lg:flex flex-row items-center justify-center border text-sm sm:text-xl rounded-3xl px-6 py-3">
             <a href="#hero" className="cursor-pointer mr-10">Home</a>
             <a href="#team" className="cursor-pointer mr-10">Team</a>
             <a href="#product" className="cursor-pointer mr-10">Product</a>
@@ -37,7 +37,7 @@ const Navbar = () => {
 
         </div>
         <div className="hidden lg:flex text-2xl">
-            <button onClick={()=> router.push("/login")} className="bg-slate-100 dark:text-slate-900 text-slate-100 rounded-full p-4 active:scale-95 transition-all">Get Started</button>
+            <button onClick={()=> router.push("/login")} className="bg-slate-100 dark:text-slate-900 text-slate-900 rounded-full p-4 active:scale-95 transition-all">Get Started</button>
         </div>
         <div className="flex items-center justify-center text-center lg:hidden">
 
