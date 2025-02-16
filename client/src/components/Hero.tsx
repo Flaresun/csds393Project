@@ -25,7 +25,7 @@ const Hero = () => {
         <div id="hero" className='pt-20 px-[2rem] sm:px-[10rem]'>
             <div className="flex flex-col items-center text-8xl text-slate-100  text-wrap">
 
-                <div className="flex mt-5">
+                <div className="flex mt-5 items-center justify-center text-center">
                     <p className="">Ace Your Studies with <span className="inline-block translate-y-4 whitespace-normal"><Image src={assets.logo} alt="Logo" width={270}/></span> </p>
                 </div>
                 <div className="flex text-xl sm:text-2xl mt-5 items-center justify-center text-center">
@@ -35,7 +35,7 @@ const Hero = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row text-2xl mt-5">
-                    <button onClick={()=> router.push("/login")} className="bg-slate-100 px-6 py-4 mr-5 dark:text-slate-900 rounded-md active:scale-95 transition-all mb-5 sm:mb-0">Get Started</button>
+                    <button onClick={()=> router.push("/login")} className="bg-slate-100 text-slate-900 px-6 py-4 mr-5 rounded-md active:scale-95 transition-all mb-5 sm:mb-0">Get Started</button>
                     <button onClick={()=> router.push("/login")} className="hover:bg-slate-100 px-6 py-4 mr-5 hover:dark:text-slate-900 rounded-md active:scale-95 transition-all">Get in Touch</button>
                 </div>
 
@@ -66,9 +66,6 @@ const Hero = () => {
                  </div>
                 
             </div>
-
-            <p className="pt-20 flex items-center justify-center text-center text-5xl">Meet the Team</p>
-
 
         </div>
     )

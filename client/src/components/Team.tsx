@@ -10,9 +10,9 @@ const Team = () => {
   return (
     <div id="team" className='px-[2rem] sm:px-[10rem] '>
 
-        {/** Meet the Team is on the hero section and not here */}
+        <p className="pt-10 flex items-center justify-center text-center text-5xl">Meet the Team</p>
 
-        <div className="mb-10 flex items-center justify-center text-center ">
+        <div className=" pt-10 mb-10 flex items-center justify-center text-center ">
           <p className="text-2xl">With over 10+ years of combined experience in building, meet the team behind CNotes</p>
         </div>
 
