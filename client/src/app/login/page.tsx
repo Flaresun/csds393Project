@@ -3,6 +3,7 @@ import { useState } from "react";
 import { LuEyeClosed } from "react-icons/lu";
 import { RxEyeOpen } from "react-icons/rx";
 import "../../components/Hero.css"; // Assuming this file exists for custom styles
+import { useRouter } from 'next/navigation'
 
 const AuthPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -10,7 +11,7 @@ const AuthPage = () => {
   const [role, setRole] = useState<string>("Student"); // State for the role dropdown
   const [email, setEmail] = useState<string>(""); // State for the role dropdown
   const [password, setPassword] = useState<string>(""); // State for the role dropdown
-
+  const router = useRouter();
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -25,7 +26,7 @@ const AuthPage = () => {
     e.preventDefault();
     try {
       if (formType === "signup") {
-        
+        // Signup Attempt 
         const res = await fetch("/api/signup", {
           method: 'POST',
           headers: {
@@ -34,9 +35,11 @@ const AuthPage = () => {
           body: JSON.stringify({ email:email, password:password, role:role }),
         })
 
-        const data = await res.json();
+        const {data} = await res.json();
         console.log(data)
+        data.success && router.push("/dashboard"); 
       } else {
+        // Login Attempt 
         const res = await fetch("/api/login", {
           method: 'POST',
           headers: {
@@ -45,8 +48,9 @@ const AuthPage = () => {
           body: JSON.stringify({ email:email, password:password}),
         })
 
-        const data = await res.json();
+        const {data} = await res.json();
         console.log(data)
+        data.success && router.push("/dashboard"); 
       }
     } catch (err) {("/api/signup")
       console.log(err)
