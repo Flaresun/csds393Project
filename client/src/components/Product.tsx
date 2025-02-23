@@ -3,7 +3,7 @@ import {assets} from "../assets/asset.js";
 import Image from 'next/image';
 import "./Product.css"
 const Product = () => {
-  const itemSize : number = 700;
+  const itemSize : number = 1700;
   return (
     <div id="product" className='bg-gradient-to-b from-black via-violet-900 to-black py-20 px-[2rem] sm:px-[10rem] text-slate-100'>
         <div className="mb-10 flex items-center justify-center">
@@ -16,7 +16,7 @@ const Product = () => {
               <Image src={assets.notes_logo} alt="Notes Logo" width={itemSize}/>
             </div>
 
-            <div className=" flex flex-col items-center text-center text-4xl text-wrap mx-10 sm:w-full">
+            <div className=" flex flex-col items-center justify-between text-center text-4xl text-wrap mx-10 sm:w-full">
               <p className="flex items-center mb-10 mt-20">Upload Your Notes In Any Format</p>
               <p className="text-2xl flex text-center ">CNotes is the ultimate tool for seamless note-taking and real-time collaboration. Create, edit, and share notes instantly with others. </p>
               <p className=""></p>
@@ -30,9 +30,9 @@ const Product = () => {
               <Image src={assets.ai_brain} alt="Notes Logo" width={itemSize}/>
             </div>
 
-            <div className=" flex flex-col items-center text-center text-4xl text-wrap mx-10 sm:w-full">
+            <div className=" flex flex-col items-center justify-between text-center text-4xl text-wrap mx-10 sm:w-full">
               <p className="flex mb-10 mt-20">Collaboration with Teachers and Students</p>
-              <p className="text-lg flex text-center">Our built-in discussion board allows you to dive deeper into ideas, ask questions, share insights, and discuss specific topics, making it easy to enhance your notes and collaborate effectively.</p>
+              <p className="text-2xl  flex text-center">Our built-in discussion board allows you to dive deeper into ideas, ask questions, share insights, and discuss specific topics, making it easy to enhance your notes and collaborate effectively.</p>
               <p className=""></p>
             </div>
           </div>
@@ -46,7 +46,7 @@ const Product = () => {
 
             <div className=" flex flex-col items-center justify-between text-center text-4xl text-wrap mx-10 sm:w-full">
               <p className="flex">Stay Tuned, More Exciting Features Upcoming!</p>
-              <p className="text-lg flex text-center">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eum officia inventore laudantium ut animi, facilis consequatur asperiores. Odio dolore hic asperiores facere. Nemo culpa maiores provident ullam assumenda quia unde!</p>
+              <p className="text-2xl  flex text-center">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eum officia inventore laudantium ut animi, facilis consequatur asperiores. Odio dolore hic asperiores facere. Nemo culpa maiores provident ullam assumenda quia unde!</p>
               <p className=""></p>
             </div>
           </div>
