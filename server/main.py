@@ -27,20 +27,21 @@ from methods import hash_password, compare_password, get_user_by_email, get_all_
 
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+db_conn_pool = AsyncConnectionPool(os.getenv("DATABASE_URL"), open=False)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Set up asynchronous connection pool
     """
-    app.db_conn_pool = AsyncConnectionPool(os.getenv("DATABASE_URL"))
+    await db_conn_pool.open()
     yield
-    await app.db_conn_pool.close()
+    await db_conn_pool.close()
 
 app = FastAPI(lifespan=lifespan)
 db = Prisma(auto_register=True)
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     """
     Obtain data about the current user, based on the JWT token in the request header
     """
@@ -57,7 +58,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except InvalidTokenError as exc:
         raise credentials_exception from exc
-    user = get_user(fake_users_db, username=token_data.username)
+    user = await get_user(db_conn_pool, username=token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -69,8 +70,8 @@ async def login_for_access_token(
     """
     Attempt to get an access token given a username and password
     """
-    user = authenticate_user(
-        fake_users_db, form_data.username, form_data.password)
+    user = await authenticate_user(
+        db_conn_pool, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
