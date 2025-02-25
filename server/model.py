@@ -30,3 +30,11 @@ class UserInDB(User):
     Represents full user data in database
     """
     password_hash: str
+
+class SignUpRequestData(BaseModel):
+    """
+    Represents the data contained in a /sign_up request
+    """
+    email: str
+    password: str
+    role: str
