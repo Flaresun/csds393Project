@@ -1,10 +1,12 @@
 import React from 'react'
-import Dashboard from './components/Dashboard';
+import Dashboard2 from './components/Dashboard2';
 
 const page = () => {
+  
+  
   return (
     <div className='p-[2rem] bg-slate-900 min-h-screen'>
-      <Dashboard />
+      <Dashboard2 />
     </div>
   )
 }

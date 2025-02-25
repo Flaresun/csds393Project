@@ -12,6 +12,8 @@ const Dashboard = () => {
 
         {/**Split 3 way. Main dashboard page. Top k recently viewed pdfs. Popular flashcards being reviewed. */}
 
+        
+
     </div>
   )
 }
