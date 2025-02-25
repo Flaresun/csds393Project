@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 
 from passlib.context import CryptContext
+from passlib.exc import UnknownHashError
 
 from database import get_user
 from model import User
@@ -28,14 +29,17 @@ def get_password_hash(password):
     """
     return pwd_context.hash(password)
 
-def authenticate_user(fake_db, username: str, password: str) -> bool | User:
+async def authenticate_user(db_conn_pool, username: str, password: str) -> bool | User:
     """
     Authenticate a user
     """
-    user = get_user(fake_db, username)
+    user = await get_user(db_conn_pool, username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    try:
+        if not verify_password(password, user.password_hash):
+            return False
+    except UnknownHashError:
         return False
     return user
 

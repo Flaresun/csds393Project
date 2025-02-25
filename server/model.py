@@ -21,13 +21,12 @@ class User(BaseModel):
     """
     Represents user data that can be returned to user
     """
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
+    email: str
+    id: int
+    role: str
 
 class UserInDB(User):
     """
     Represents full user data in database
     """
-    hashed_password: str
+    password_hash: str
