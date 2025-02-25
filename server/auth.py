@@ -10,7 +10,7 @@ from passlib.context import CryptContext
 from passlib.exc import UnknownHashError
 
 from database import get_user
-from model import User
+from model import User, Token
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -29,11 +29,11 @@ def get_password_hash(password):
     """
     return pwd_context.hash(password)
 
-async def authenticate_user(db_conn_pool, username: str, password: str) -> bool | User:
+async def authenticate_user(db_conn_pool, email: str, password: str) -> bool | User:
     """
     Authenticate a user
     """
-    user = await get_user(db_conn_pool, username)
+    user = await get_user(db_conn_pool, email)
     if not user:
         return False
     try:
@@ -55,3 +55,13 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def create_access_token_from_email(email: str) -> Token:
+    """
+    A wrapper around create_access_token for JWT creation given just a email string
+    """
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": email}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token)

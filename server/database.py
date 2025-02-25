@@ -1,30 +1,19 @@
 """
 Methods for interfacing with the database.
-For now, we have a "dummy" database dictionary in here.
 """
+
+from psycopg.errors import UniqueViolation
 
 from model import UserInDB
 
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    },
-    "alice": {
-        "username": "alice",
-        "full_name": "Alice Wonderson",
-        "email": "alice@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": True,
-    },
-}
-
-async def get_user(db_conn_pool, username: str):
+class UserAlreadyExistsException(Exception):
     """
-    Get information about the user with the given username from the database, or return None
+    Raised when someone attempts to create a new user with an email that is already in use
+    """
+
+async def get_user(db_conn_pool, email: str):
+    """
+    Get information about the user with the given email from the database, or return None
     """
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
@@ -33,7 +22,7 @@ async def get_user(db_conn_pool, username: str):
                 SELECT id, email, password_hash, user_role FROM users
                 WHERE email = %s
                 """,
-                (username,)
+                (email,)
             )
             result = await cur.fetchone()
             if result is not None:
@@ -43,3 +32,21 @@ async def get_user(db_conn_pool, username: str):
                     role = result[2],
                     password_hash = result[3]
                 )
+
+async def create_new_user(db_conn_poll, email, password_hash, user_role):
+    """
+    Attempts to create a new user with the given email, password has and user role;
+    raises a UserAlreadyExistsException if a user with that email already exists
+    """
+    async with db_conn_poll.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute(
+                    """
+                    INSERT INTO users (email, password_hash, user_role)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (email, password_hash, user_role)
+                )
+            except UniqueViolation as exc:
+                raise UserAlreadyExistsException() from exc
