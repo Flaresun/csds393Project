@@ -3,6 +3,7 @@ Main file containing HTTP endpoint definitions
 """
 from contextlib import asynccontextmanager
 from datetime import timedelta
+import os
 from typing import Annotated
 
 import jwt
@@ -12,6 +13,7 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
+from psycopg_pool import AsyncConnectionPool
 from pydantic import BaseModel
 from prisma import Prisma
 
@@ -23,12 +25,20 @@ from model import Token, TokenData, User
 from methods import hash_password, compare_password, get_user_by_email, get_all_users
 # Run with comamand : uvicorn main:app --reload
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-app = FastAPI()
-
 load_dotenv()
-db = Prisma(auto_register=True)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Set up asynchronous connection pool
+    """
+    app.db_conn_pool = AsyncConnectionPool(os.getenv("DATABASE_URL"))
+    yield
+    await app.db_conn_pool.close()
+
+app = FastAPI(lifespan=lifespan)
+db = Prisma(auto_register=True)
 
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     """
@@ -81,12 +91,6 @@ async def read_users_me(
     Attempt to get data about yourself (requires authentication)
     """
     return current_user
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await db.connect()
-    yield
-    await db.disconnect()
 
 @app.get("/")
 async def root():
