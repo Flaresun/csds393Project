@@ -20,9 +20,6 @@ const Dashboard = () => {
             <LeftPanel panel={panel}/>
           </div>
           <Main />
-          <div className="mt-10 w-64">
-            <RightPanel />
-          </div>
         </div>
         
 
