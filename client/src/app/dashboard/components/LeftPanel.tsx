@@ -22,7 +22,7 @@ const LeftPanel = (props : any) => {
 
     return (
         
-        <div className='absolute top-30'>
+        <div >
             {props.panel && (
 
             
