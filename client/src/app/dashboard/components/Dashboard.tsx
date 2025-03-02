@@ -5,6 +5,7 @@ import { AppContent } from '@/context/AppContext';
 import { useContext } from 'react'
 import LeftPanel from './LeftPanel';
 import Main from './Main';
+import RightPanel from './RightPanel';
 
 const Dashboard = () => {
       const {panel, setPanel} = useContext<any>(AppContent);
@@ -14,10 +15,14 @@ const Dashboard = () => {
         {/**Split 3 way. Navbar on top with search, notifications, profile, extras */}
         <Navbar />
 
-        {/**Split 3 way. Leftbar with navigation tools. Like go upload a file, Go browse files. Saved files, home, settings, contact */}
-        <div className="flex">
-          <LeftPanel panel={panel}/>
+        <div className="flex justify-start gap-x-20">
+          <div className="mt-10 w-64">
+            <LeftPanel panel={panel}/>
+          </div>
           <Main />
+          <div className="mt-10 w-64">
+            <RightPanel />
+          </div>
         </div>
         
 
