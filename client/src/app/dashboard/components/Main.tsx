@@ -26,10 +26,10 @@ interface FileItem {
 const Main: React.FC = () => {
   // State for categories
   const [classes] = useState<Classes[]>([
-    { icon: "➕", name: "Math 224: Differential Equations", role: "Student", color: "#7377F8" },
-    { icon: "📱", name: "CSDS 393: Software Engineering", role: "Student", color: "#3DBBB3" },
-    { icon: "🧲", name: "PHYS 221: Modern Physics", role: "Student", color: "#E75D8D" },
-    { icon: "🔢", name: "CSDS 343: Theoretical Computer Science", role: "Student", color: "#4D7CFE" },
+    { icon: "➕", name: "Math 224: Differential Equations", role: "Student", color: "#4B2C83" },
+    { icon: "📱", name: "CSDS 393: Software Engineering", role: "Student", color: "#6A3D9B" },
+    { icon: "🧲", name: "PHYS 221: Modern Physics", role: "Student", color: "#9B59B6" },
+    { icon: "🔢", name: "CSDS 343: Theoretical Computer Science", role: "Student", color: "#B285D5" },
   ]);
 
   // State for file folders
@@ -57,8 +57,8 @@ const Main: React.FC = () => {
 
         {/* Categories */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700">My Classes</h2>
-          <div className="grid grid-cols-4 gap-4">
+          <h2 className="text-xl font-semibold mb-4 text-gray-300">My Classes</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {classes.map((category, index) => (
               <button
                 key={index}
@@ -70,7 +70,7 @@ const Main: React.FC = () => {
                 <p className="text-sm opacity-80 mt-2">{category.role}</p>
               </button>
             ))}
-            <div className="p-4 bg-white flex-col rounded-lg shadow-sm flex items-center justify-center">
+            <div className="p-4 bg-slate-700 flex-col rounded-lg shadow-sm flex items-center justify-center">
               <div className="text-2xl text-blue-500">+</div>
               
             </div>
@@ -79,16 +79,16 @@ const Main: React.FC = () => {
 
         {/* Folders section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700">My Folders</h2>
-          <div className="grid grid-cols-4 gap-4">
+          <h2 className="text-xl font-semibold mb-4 text-gray-300">My Folders</h2>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {folders.map((folder, index) => (
-              <button key={index} className="p-4 bg-white rounded-lg shadow-sm">
+              <button key={index} className="p-4 bg-slate-700 rounded-lg shadow-sm">
                 <div className="text-2xl mb-2">{folder.icon}</div>
-                <div className="font-semibold">{folder.name}</div>
-                <div className="text-sm text-gray-500">{folder.files} files</div>
+                <div className="font-semibold text-white">{folder.name}</div>
+                <div className="text-sm text-gray-300">{folder.files} files</div>
               </button>
             ))}
-            <button className="p-4 bg-white rounded-lg shadow-sm flex items-center justify-center">
+            <button className="p-4 bg-gray-700 rounded-lg shadow-sm flex items-center justify-center">
               <span className="text-2xl text-blue-500">+</span>
             </button>
           </div>
@@ -96,16 +96,16 @@ const Main: React.FC = () => {
 
         {/* Recent files */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-700">Recent files</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-300">Recent files</h2>
           <div className="space-y-2">
             {recentFiles.map((file, index) => (
-              <div key={index} className="bg-white p-4 rounded-lg shadow-sm flex items-center">
+              <div key={index} className="bg-gray-500 p-4 rounded-lg shadow-sm flex items-center">
                 <div className="w-10 h-10 flex items-center justify-center rounded-lg mr-4" style={{ backgroundColor: index === 0 ? '#7377F8' : index === 1 ? '#E75D8D' : index === 2 ? '#4D7CFE' : '#3DBBB3' }}>
                   <span className="text-white">{file.icon}</span>
                 </div>
                 <div className="flex-grow">
-                  <div className="font-medium">{file.name}</div>
-                  <div className="text-sm text-gray-500">{file.type}</div>
+                  <div className="font-medium text-gray-300">{file.name}</div>
+                  <div className="text-sm text-gray-300">{file.type}</div>
                 </div>
                 <div className="text-gray-500 mr-4">{file.size}</div>
                 <div className="text-blue-500 mr-4">🔗</div>
