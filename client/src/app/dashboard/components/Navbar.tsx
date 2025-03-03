@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 import { RxHamburgerMenu } from "react-icons/rx";
 import { assets } from '@/assets/asset';
 import { CiSearch } from "react-icons/ci";
@@ -17,6 +17,7 @@ const Navbar = () => {
     const logoWidth : number = 100;
     const [profileModule, setProfileModule] = useState<boolean>(false);
     const {panel, setPanel} = useContext<any>(AppContent);
+    const inputRef = useRef(null);
     const router = useRouter();
     const handlePanel = () => {
         setPanel((prev : boolean) => !prev)
@@ -24,6 +25,18 @@ const Navbar = () => {
     const handleLogo = () => {
         router.push("/dashboard")
     }
+    
+    useEffect(() => {
+        const inputField = document.getElementsByClassName("searchBar");
+        for (let i = 0; i < inputField.length; i++) {
+            inputField[i].addEventListener("keypress", function(e : KeyboardEvent) {
+                if (e.key !== "Enter") return;
+                const searchQuery = inputRef.current?.value
+
+                router.push(`/search?q=%${searchQuery}`)
+            })
+        }
+    },[])
 
     return (
         <div className="flex flex-col mb-10">        
@@ -34,9 +47,9 @@ const Navbar = () => {
                     <Image onClick={handleLogo} src={assets.logo} alt="Logo" width={logoWidth} className='cursor-pointer'/>
                 </div>
 
-                <div className="hidden sm:flex border items-start justify-start text-center bg-gray-400 text-slate-900 rounded-md p-2">
+                <div onSubmit={handleLogo} className="hidden sm:flex border items-start justify-start text-center bg-gray-400 text-slate-900 rounded-md p-2">
                     <CiSearch size={30} className='cursor-pointer'/>
-                    <input type="text" className="pl-2 bg-transparent border-none focus:outline-none placeholder-slate-900 sm:w-full lg:w-[40rem]" placeholder='Search for files' />
+                    <input ref={inputRef} type="text" className="searchBar pl-2 bg-transparent border-none focus:outline-none placeholder-slate-900 sm:w-full lg:w-[40rem]" placeholder='Search for files' />
                 </div>
                 
                 
@@ -90,7 +103,7 @@ const Navbar = () => {
             {/**Search bar for small screens */}
             <div className="flex sm:hidden border items-center justify-start text-center bg-gray-400 text-slate-900 rounded-md mt-5 p-2">
                     <CiSearch size={30} className='cursor-pointer'/>
-                    <input type="text" className="pl-2 bg-transparent border-none focus:outline-none placeholder-slate-900 w-full" placeholder='Search for files' />
+                    <input type="text" className="searchBar pl-2 bg-transparent border-none focus:outline-none placeholder-slate-900 w-full" placeholder='Search for files' />
             </div>
         </div>
     )

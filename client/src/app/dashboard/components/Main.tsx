@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 
 // Define TypeScript interfaces
@@ -65,8 +66,8 @@ const Main: React.FC = () => {
                 style={{ backgroundColor: category.color }}
               >
                 <div className="text-2xl mb-2">{category.icon}</div>
-                <div className="font-semibold">{category.name}</div>
-                <div className="text-sm opacity-80 mt-2">{category.role}</div>
+                <p className="font-semibold">{category.name}</p>
+                <p className="text-sm opacity-80 mt-2">{category.role}</p>
               </button>
             ))}
             <div className="p-4 bg-white flex-col rounded-lg shadow-sm flex items-center justify-center">
