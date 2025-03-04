@@ -38,3 +38,11 @@ class SignUpRequestData(BaseModel):
     email: str
     password: str
     role: str
+
+class CreateCourseRequestData(BaseModel):
+    """
+    Represents the data contained in a /create_course request
+    """
+    department: str
+    code: str
+    name: str

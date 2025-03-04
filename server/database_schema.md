@@ -33,7 +33,8 @@ CREATE TABLE courses (
 	id SERIAL PRIMARY KEY,
 	department_id INTEGER NOT NULL REFERENCES departments(id),
 	code TEXT UNIQUE NOT NULL,
-	name TEXT UNIQUE NOT NULL
+	name TEXT UNIQUE NOT NULL,
+	UNIQUE (department_id, code)
 )
 ```
 
