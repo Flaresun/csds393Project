@@ -9,10 +9,6 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from methods import hash_password, compare_password, get_user_by_email, get_all_users
 # Run with comamand : uvicorn main:app --reload
-<<<<<<< HEAD
-=======
-
->>>>>>> backend
 import json
 from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import RedirectResponse
@@ -87,18 +83,11 @@ async def login(user : LoginUser):
         return JSONResponse(content={"success":True, "message":"Login Successful", "user":{"email":email}},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
         return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
-<<<<<<< HEAD
-=======
 
->>>>>>> backend
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     print("Received file:", file.filename)
     try:
-<<<<<<< HEAD
-=======
-
->>>>>>> backend
         res : dict = await upload_file(db,"omeikeseth@gmail.com", file)
         print(res)
         return JSONResponse(content={"success":True, "message":res},status_code=200,headers={"X-Error": "Custom Error"})
