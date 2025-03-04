@@ -1,7 +1,7 @@
 .fileUploadForm {
     background: #6E95F7;
-    height: 400px;
-    width: 500px;
+    height: 50vh;
+    width: 60vw;
     position: relative;
     display: flex;
     align-items: center;
