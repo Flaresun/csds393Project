@@ -10,6 +10,13 @@
     margin: 0px;
     font-size: 24px;
     font-style: bold;
+    font-size: 2.5rem;
+
+    color: #6B7280;
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: inline-block;
   }
   
   .input__wrapper {
@@ -22,9 +29,7 @@
     border-radius: 5px;
     font-size: 18px;
   }
-  .input__wrapper input:focus {
-    outline: none;
-  }
+
   .input__wrapper button {
     background-color: #4B2C83;
     color: white;
@@ -39,7 +44,7 @@
   
   .body__item {
     background-color: #6B7280;
-    text-align: left !important;
+    text-align: left;
     border: 1px solid #6B7280;
     padding: 20px;
     width: 50%;
