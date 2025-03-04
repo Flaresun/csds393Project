@@ -39,7 +39,7 @@ const LeftPanel = (props : any) => {
                 </div>
                 <div onClick={(e)=> handleActive(e)} className={`flex flex-row items-start justify-start text-center p-2 ${active==="Browse Files" && "bg-slate-200 rounded-md w-full" } mb-5 cursor-pointer`}> 
                     <FiSearch  size={itemSize}/>
-                    <p className="ml-4">Browse Files</p>
+                    <p className="ml-4">Search Files</p>
                 </div>
                 <div onClick={(e)=> handleActive(e)} className={`flex flex-row items-start justify-start text-center p-2 ${active==="Saved Notes" && "bg-slate-200 rounded-md w-full" } mb-5 cursor-pointer`}> 
                     <FiBookmark  size={itemSize}/>
