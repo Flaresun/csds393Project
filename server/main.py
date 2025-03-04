@@ -18,11 +18,12 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
-
+from google_drive import upload_file
 app = FastAPI()
 
 load_dotenv()
 db = Prisma(auto_register=True)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI):
 @app.get("/")
 async def root():
     return {"message": "Hello, world!"}
+
 
 class SignupUser(BaseModel):
     email : str
@@ -92,5 +94,16 @@ async def login(user : LoginUser):
             return JSONResponse(content={"success":False, "message":"Password is Incorrect"},status_code=200,headers={"X-Error": "Custom Error"})
 
         return JSONResponse(content={"success":True, "message":"Login Successful", "user":{"email":email}},status_code=200,headers={"X-Error": "Custom Error"})
+    except BaseException as e:
+        return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
+
+@app.post("/upload")
+async def upload(file: UploadFile = File(...)):
+    print("Received file:", file.filename)
+    try:
+
+        res : dict = await upload_file(db,"omeikeseth@gmail.com", file)
+        print(res)
+        return JSONResponse(content={"success":True, "message":res},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
         return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
