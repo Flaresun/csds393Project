@@ -19,10 +19,11 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, DepartmentDoesNotExistException, \
-        FacultyDoesNotExistException, InvalidSemesterException, SectionAlreadyExistsException, \
-            SectionDoesNotExistException, store_note, UserAlreadyExistsException
-from model import CreateCourseRequestData, CreateSectionRequestData, SignUpRequestData, Token, \
-    TokenData, UploadNoteRequestData, User
+        FacultyDoesNotExistException, get_notes_for_course as get_notes_for_course_from_db, InvalidSemesterException, \
+            SectionAlreadyExistsException, SectionDoesNotExistException, store_note, \
+                UserAlreadyExistsException
+from model import CreateCourseRequestData, CreateSectionRequestData, GetNotesForCourseRequestData, \
+    SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -213,3 +214,17 @@ async def upload_note(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="section does not exist"
         ) from exc
+
+@app.post("/get_notes_for_course")
+async def get_notes_for_course(
+    request_data: GetNotesForCourseRequestData
+):
+    """
+    Attempts to get notes for all sections of a particular course
+    """
+    notes = await get_notes_for_course_from_db(db_conn_pool, request_data.department, request_data.course)
+    return JSONResponse(
+        content = {
+            "notes": notes
+        }
+    )

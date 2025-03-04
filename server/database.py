@@ -232,3 +232,37 @@ async def store_note(db_conn_pool, section_id, content, email):
                 return result[0]
             except ForeignKeyViolation as exc:
                 raise SectionDoesNotExistException() from exc
+
+async def get_notes_for_course(db_conn_pool, department, course):
+    """
+    Attempts to get all notes for a particular course from all sections
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                WITH department AS (
+                    SELECT id FROM departments WHERE code = %s
+                ),
+                course AS (
+                    SELECT courses.id FROM courses, department
+                    WHERE department_id = department.id AND code = %s
+                ),
+                section_ids AS (
+                    SELECT sections.id FROM sections, course WHERE course_id = course.id
+                )
+                SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes
+                INNER JOIN section_ids ON notes.section_id = section_ids.id
+                """,
+                (department.upper(), course.upper())
+            )
+            results = await cur.fetchall()
+            notes = []
+            for result in results:
+                notes.append({
+                    "id": result[0],
+                    "section_id": result[1],
+                    "owner_id": result[2],
+                    "content": result[3],
+                })
+            return notes
