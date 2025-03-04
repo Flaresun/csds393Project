@@ -16,12 +16,49 @@ model User {
     password String 
     role String
     notes Note[]
+    sections Section[]
+}
+
+model Department {
+    id Int @id @default(autoincrement())
+    code String @unique
+    name String @unique
+    courses Course[]
+}
+
+model Course {
+    id Int @id @default(autoincrement())
+    department_id Int
+    department  Department @relation(fields: [department_id], references: [id])
+    code String @unique
+    name String @unique
+    sections Section[]
+}
+
+enum Semester {
+  spring
+  summer
+  fall
+}
+
+model Section {
+    id Int @id @default(autoincrement())
+    course_id Int
+    course   Course @relation(fields: [course_id], references: [id])
+    instructor_id Int
+    user    User @relation(fields: [instructor_id], references: [id])
+    year Int
+    semester Semester // ensures that semester is one of “spring”, “summer”, “fall”
+    notes Note[]
 }
 
 model Note {
     id Int @id @default(autoincrement())
+    section_id Int
+    section Section @relation(fields: [section_id], references: [id])
+    uploader_id Int
+    user User @relation(fields: [uploader_id], references: [id])
     file_url String @unique
     created_at DateTime @default(now())  // timestamp
     uploaded_by Int  // Foreign key to User.id
-    user        User @relation(fields: [uploaded_by], references: [id], onDelete: Cascade)
 }
