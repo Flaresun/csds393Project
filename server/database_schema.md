@@ -46,7 +46,8 @@ CREATE TABLE sections (
 	instructor INTEGER REFERENCES users(id),
 	year INTEGER NOT NULL,
 	semester TEXT NOT NULL,
-	CHECK (semester in ('spring', 'summer', 'fall'))
+	CHECK (semester in ('spring', 'summer', 'fall')),
+	UNIQUE (course_id, instructor, year, semester)
 )
 ```
 

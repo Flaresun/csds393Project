@@ -9,6 +9,7 @@ import jwt
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from psycopg_pool import AsyncConnectionPool
@@ -16,9 +17,12 @@ from prisma import Prisma
 
 from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
-from database import CourseAlreadyExistsException, create_new_course, create_new_user, \
-    DepartmentDoesNotExistException, UserAlreadyExistsException
-from model import CreateCourseRequestData, SignUpRequestData, Token, TokenData, User
+from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
+    create_new_section, create_new_user, DepartmentDoesNotExistException, \
+        FacultyDoesNotExistException, InvalidSemesterException, SectionAlreadyExistsException, \
+            UserAlreadyExistsException
+from model import CreateCourseRequestData, CreateSectionRequestData, SignUpRequestData, Token, \
+    TokenData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -133,3 +137,55 @@ async def create_course(
             detail="course already exists"
         ) from exc
     return Response(content=None)
+
+@app.post("/create_section")
+async def create_section(
+    current_user: Annotated[User, Depends(get_current_user)], request_data: CreateSectionRequestData
+):
+    """
+    Attempts to create a new course in a particular department
+    """
+    if current_user.role != "faculty":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="only faculty can create section"
+        )
+    try:
+        section_id = await create_new_section(
+            db_conn_pool,
+            request_data.department,
+            request_data.course,
+            request_data.instructor,
+            request_data.year,
+            request_data.semester,
+        )
+    except DepartmentDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="department does not exist"
+        ) from exc
+    except CourseDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="course does not exist"
+        ) from exc
+    except FacultyDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="instructor (user with faculty role) does not exist"
+        ) from exc
+    except InvalidSemesterException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="semester must be one of 'fall', 'spring', 'summer'"
+        ) from exc
+    except SectionAlreadyExistsException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="course already exists"
+        ) from exc
+    return JSONResponse(
+        content = {
+            "id": section_id
+        }
+    )
