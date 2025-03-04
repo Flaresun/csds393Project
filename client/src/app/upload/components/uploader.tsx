@@ -32,18 +32,19 @@ const page = () => {
     };
     return (
         <div className="flex items-center justify-center w-full min-h-screen bg-gray-800">
-            <div className="flex items-center justify-center p-6 max-w-md mx-auto rounded-xl shadow-md space-y-4 fileUploadForm">
-                <span className="uploadText">Upload an image</span>
-                
-                <input type="file" accept=".pdf,.docx" onChange={handleFileChange} />
-                
-                <button
-                    onClick={uploadFile}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                >
-                    Upload
-                </button>
-                {message && <p className="text-center text-gray-700">{message}</p>}
+            <div className="flex flex-wrap items-center justify-center p-6 max-w-md mx-auto rounded-xl shadow-md space-y-4 fileUploadForm">
+                <span className="uploadText">Upload a File</span>
+                <div className="flex flex-col sm:flex-row items-center w-full space-y-2 sm:space-y-0 sm:space-x-4">
+                    <input type="file" accept=".pdf,.docx" onChange={handleFileChange} className='pl-20 pb-5 md:pl-0 pb-0 lg:pl-0 pb-0'/>
+                    
+                    <button
+                        onClick={uploadFile}
+                        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                    >
+                        Upload
+                    </button>
+                    {message && <p className="text-center text-gray-700">{message}</p>}
+                </div>
             </div>
         </div>
     );
