@@ -14,7 +14,7 @@ const Dashboard = () => {
         {/**Split 3 way. Navbar on top with search, notifications, profile, extras */}
         <Navbar />
 
-        <div className="flex">
+        <div className="flex overflow-y-auto">
           <LeftPanel panel={panel}/>
           <Main />
         </div>
