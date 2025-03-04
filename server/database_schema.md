@@ -72,10 +72,10 @@ CREATE TABLE note_ratings (
 
 ## Comments Table
 ```
-CREATE TABLE root_comments (
+CREATE TABLE comments (
 	id SERIAL PRIMARY KEY,
 	note_id INTEGER NOT NULL REFERENCES notes(id),
-	parent_comment_id INTEGER REFERENCES root_comments(id),
+	parent_comment_id INTEGER REFERENCES comments(id),
 	commenter_id INTEGER NOT NULL REFERENCES users(id),
 	content TEXT NOT NULL
 )
