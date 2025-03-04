@@ -2,6 +2,8 @@
 import React from 'react'
 import { useState } from "react";
 import axios from "axios";
+import './uploader.css';
+
 const page = () => {
     
     const [file, setFile] = useState<File | null>(null);
@@ -29,13 +31,15 @@ const page = () => {
         }
     };
     return (
-        <div className="flex items-center justify-center w-full min-h-screen">
-            <div className="flex items-center justify-center p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
+        <div className="flex items-center justify-center w-full min-h-screen bg-gray-800">
+            <div className="flex items-center justify-center p-6 max-w-md mx-auto rounded-xl shadow-md space-y-4 fileUploadForm">
+                <span className="uploadText">Upload an image</span>
+                
                 <input type="file" accept=".pdf,.docx" onChange={handleFileChange} />
                 
                 <button
                     onClick={uploadFile}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                 >
                     Upload
                 </button>
