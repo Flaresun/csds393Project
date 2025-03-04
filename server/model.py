@@ -63,3 +63,11 @@ class UploadNoteRequestData(BaseModel):
     """
     section_id: int
     content: str
+
+class GetNotesForCourseRequestData(BaseModel):
+    """
+    Represents data contained in a /get_notes_for_course request
+    """
+    department: str
+    course: str
+    ids_only: bool
