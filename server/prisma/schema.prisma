@@ -15,4 +15,13 @@ model User {
     email String @unique
     password String 
     role String
+    notes Note[]
+}
+
+model Note {
+    id Int @id @default(autoincrement())
+    file_url String @unique
+    created_at DateTime @default(now())  // timestamp
+    uploaded_by Int  // Foreign key to User.id
+    user        User @relation(fields: [uploaded_by], references: [id], onDelete: Cascade)
 }

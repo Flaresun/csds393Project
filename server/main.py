@@ -7,34 +7,38 @@ import importlib
 import sys
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-
 from methods import hash_password, compare_password, get_user_by_email, get_all_users
 # Run with comamand : uvicorn main:app --reload
-
+import json
+from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks, UploadFile, File
+from fastapi.responses import RedirectResponse
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+import io
+from google_drive import upload_file
 app = FastAPI()
-
 load_dotenv()
 db = Prisma(auto_register=True)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db.connect()
     yield
     await db.disconnect()
-
 @app.get("/")
 async def root():
     return {"message": "Hello, world!"}
+
 
 class SignupUser(BaseModel):
     email : str
     password : str
     role : str
-
 @app.post("/signup")
 async def signup(user :SignupUser ):
     params = list(user)
-
     email, password, role = params[0][1], params[1][1], params[2][1]
     if email == "" or password == "" :
         return JSONResponse(content={"success":False, "message":"Email Password and Role Required"},status_code=200,headers={"X-Error": "Custom Error"})
@@ -54,18 +58,14 @@ async def signup(user :SignupUser ):
                     "role": role                
                 },
             )
-
         await prisma.disconnect()
     except BaseException as e:
         await prisma.disconnect()
         return JSONResponse(content={"success":False, "message":e},status_code=200,headers={"X-Error": "Custom Error"})
-
     return JSONResponse(content={"success":True, "message":"Signup Successful", "user":{"email":email}},status_code=201,headers={"X-Error": "Custom Error"})
-
 class LoginUser(BaseModel):
     email : str
     password : str
-
 @app.post("/login")
 async def login(user : LoginUser):
     params : list[LoginUser] = list(user)
@@ -76,16 +76,20 @@ async def login(user : LoginUser):
         await db.disconnect()
         await db.connect()
         user = await get_user_by_email(db,email)
-
         if not user:
             return JSONResponse(content={"success":False, "message":"User Not Found"},status_code=200,headers={"X-Error": "Custom Error"})
-
         if not compare_password(password.encode("utf-8"), user['password'].encode("utf-8")):
             return JSONResponse(content={"success":False, "message":"Password is Incorrect"},status_code=200,headers={"X-Error": "Custom Error"})
-
         return JSONResponse(content={"success":True, "message":"Login Successful", "user":{"email":email}},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
         return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
 
-
-
+@app.post("/upload")
+async def upload(file: UploadFile = File(...)):
+    print("Received file:", file.filename)
+    try:
+        res : dict = await upload_file(db,"omeikeseth@gmail.com", file)
+        print(res)
+        return JSONResponse(content={"success":True, "message":res},status_code=200,headers={"X-Error": "Custom Error"})
+    except BaseException as e:
+        return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
