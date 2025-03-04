@@ -16,3 +16,8 @@ model User {
     password String 
     role String
 }
+
+model Note {
+    id Int @id @default(autoincrement())
+    file_url String
+}
