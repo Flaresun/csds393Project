@@ -7,6 +7,12 @@ type ResponseData = {
   }
 export async function POST(req : Request) {
     const formData = await req.formData();
+    const className = formData.get("className");
+    const userEmail = formData.get("email");
+
+    formData.append("className", className)
+    formData.append("email", userEmail)
+    console.log(className, userEmail)
     const res = await fetch(process.env.BACKEND_URL + "/upload",{
         method : "POST",
         body:formData,

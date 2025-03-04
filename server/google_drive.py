@@ -61,7 +61,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user  # authenticated user object
 
 
-async def upload_file(db,current_user: str, file: UploadFile = File(...)):
+async def upload_file(db,email: str,className:str, file: UploadFile = File(...)):
     # upload file to Google Drive
     file_metadata = {
         "name": file.filename,
@@ -75,13 +75,20 @@ async def upload_file(db,current_user: str, file: UploadFile = File(...)):
     file_url = f"https://drive.google.com/file/d/{file_id}/view"
     print('done*********************')
     # stores metadata in Neon
-    """
-    await db.connect()
-    await db.note.create(data={
-        "file_url": file_url,
-        "uploaded_by": "current_use"
-    })
-    await db.disconnect()
-    """
     
-    return {"message": "File uploaded successfully!", "file_url": file_url}
+    try:
+        prisma = Prisma()
+        await prisma.connect()
+        user = await prisma.note.create(
+                data={
+                    'uploaded_by': email,
+                    "className": className,
+                    "file_url":file_url,
+                },
+            )
+        await prisma.disconnect()
+    except BaseException as e:
+        return {"message": e, "file_url": file_url}
+    
+    
+    return {"message": "File uploaded successfully!", "file_url": user}
