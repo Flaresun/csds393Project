@@ -46,3 +46,13 @@ class CreateCourseRequestData(BaseModel):
     department: str
     code: str
     name: str
+
+class CreateSectionRequestData(BaseModel):
+    """
+    Represents the data contained in a /create_section request
+    """
+    department: str
+    course: str
+    instructor: str
+    year: int
+    semester: str
