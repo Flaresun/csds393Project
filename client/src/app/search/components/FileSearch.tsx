@@ -54,7 +54,7 @@ const FileSearch: React.FC = () => {
   return (
     <div className='bg-gray-900 min-h-screen'>
       <div className="title">
-        <h1>User Find</h1>
+        <h1>File Finder</h1>
       </div>
       <div className="input__wrapper">
         <input
@@ -76,7 +76,7 @@ const FileSearch: React.FC = () => {
 
       <div className="body">
         {fileList.length === 0 && (
-          <div className="notFound">No User Found</div>
+          <div className="notFound">No File Found</div>
         )}
 
         {fileList.length > 0 && fileList.map((file, index) => {
