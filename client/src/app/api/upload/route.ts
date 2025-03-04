@@ -1,18 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { type NextRequest } from 'next/server'
 import { headers } from 'next/headers'
-<<<<<<< HEAD
-=======
-
->>>>>>> backend
 type ResponseData = {
     success : boolean,
     message: string
   }
-<<<<<<< HEAD
-=======
-
->>>>>>> backend
 export async function POST(req : Request) {
     const formData = await req.formData();
     const res = await fetch(process.env.BACKEND_URL + "/upload",{
@@ -23,9 +15,4 @@ export async function POST(req : Request) {
     }); 
     const data = await res.json();
     return Response.json({ data });
-<<<<<<< HEAD
 }
-=======
-
-}
->>>>>>> backend
