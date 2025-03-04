@@ -25,12 +25,13 @@ async def get_user(db_conn_pool, email: str):
                 (email,)
             )
             result = await cur.fetchone()
+            print(result)
             if result is not None:
                 return UserInDB(
                     email = result[1],
                     id = result[0],
-                    role = result[2],
-                    password_hash = result[3]
+                    password_hash = result[2],
+                    role = result[3],
                 )
 
 async def create_new_user(db_conn_poll, email, password_hash, user_role):
