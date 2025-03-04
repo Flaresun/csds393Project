@@ -10,10 +10,10 @@ export const AppContextProvider = (props:any) => {
     const [panel, setPanel] = useState<boolean>(true);
     {/**Need a Theme Context */}
     {/**Need a Auth Context */}
-    
-
-    const value : any = {
+    const [userEmail, setUserEmail] = useState<string|null>(null);
+    const value : any = { 
         panel, setPanel,
+        userEmail, setUserEmail
     }
     return (
         <AppContent.Provider value={value}>

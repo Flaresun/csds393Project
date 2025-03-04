@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from methods import hash_password, compare_password, get_user_by_email, get_all_users
 # Run with comamand : uvicorn main:app --reload
 import json
-from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks, UploadFile, File,Form
 from fastapi.responses import RedirectResponse
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -84,11 +84,16 @@ async def login(user : LoginUser):
     except BaseException as e:
         return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
 
+
 @app.post("/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...),className: str = Form(...),email: str = Form(...)):
     print("Received file:", file.filename)
+    print(className)
+    print(email)
+
+
     try:
-        res : dict = await upload_file(db,"omeikeseth@gmail.com", file)
+        res : dict = await upload_file(db,email,className,file)
         print(res)
         return JSONResponse(content={"success":True, "message":res},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
