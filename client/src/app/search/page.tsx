@@ -1,8 +1,11 @@
 import React from 'react'
+import UserFind from './components/FileSearch';
 
 const page = () => {
   return (
-    <div>Search Page</div>
+    <div>
+      <UserFind />
+    </div>
   )
 }
 

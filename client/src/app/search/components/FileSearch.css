@@ -1,0 +1,55 @@
+.title {
+    background: #4B2C83;
+    color: #6B7280;
+    width: 100%;
+    padding: 40px 0px;
+    text-align: center;
+  }
+  .title h1 {
+    padding: 0px;
+    margin: 0px;
+    font-size: 24px;
+    font-style: bold;
+  }
+  
+  .input__wrapper {
+    margin: 20px;
+    text-align: center;
+  }
+  .input__wrapper input {
+    border: 3px solid #4B2C83;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 18px;
+  }
+  .input__wrapper input:focus {
+    outline: none;
+  }
+  .input__wrapper button {
+    background-color: #4B2C83;
+    color: white;
+    padding: 8px 15px;
+    font-size: 18px;
+    border: none;
+    border: 3px solid #4B2C83;
+    border-radius: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  
+  .body__item {
+    background-color: #6B7280;
+    text-align: left !important;
+    border: 1px solid #6B7280;
+    padding: 20px;
+    width: 50%;
+    margin: 20px auto;
+  }
+  
+  .notFound {
+    width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #6B7280;
+    text-align: center;
+  }
