@@ -56,3 +56,10 @@ class CreateSectionRequestData(BaseModel):
     instructor: str
     year: int
     semester: str
+
+class UploadNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /upload_note request
+    """
+    section_id: int
+    content: str

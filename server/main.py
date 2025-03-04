@@ -20,9 +20,9 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, DepartmentDoesNotExistException, \
         FacultyDoesNotExistException, InvalidSemesterException, SectionAlreadyExistsException, \
-            UserAlreadyExistsException
+            SectionDoesNotExistException, store_note, UserAlreadyExistsException
 from model import CreateCourseRequestData, CreateSectionRequestData, SignUpRequestData, Token, \
-    TokenData, User
+    TokenData, UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -189,3 +189,27 @@ async def create_section(
             "id": section_id
         }
     )
+
+@app.post("/upload_note")
+async def upload_note(
+    current_user: Annotated[User, Depends(get_current_user)], request_data: UploadNoteRequestData
+):
+    """
+    Attempts to upload a note for a particular section
+    """
+    # We don't catch UserDoesNotExistException because that shouldn't happen: if an account for
+    # the caller doesn't exist, authentication should fail.
+    try:
+        note_id = await store_note(
+            db_conn_pool, request_data.section_id, request_data.content, current_user.email
+        )
+        return JSONResponse(
+            content = {
+                "id": note_id
+            }
+        )
+    except SectionDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="section does not exist"
+        ) from exc

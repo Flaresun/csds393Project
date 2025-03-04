@@ -2,7 +2,7 @@
 Methods for interfacing with the database.
 """
 
-from psycopg.errors import CheckViolation, UniqueViolation
+from psycopg.errors import CheckViolation, ForeignKeyViolation, UniqueViolation
 
 from model import UserInDB
 
@@ -194,3 +194,41 @@ async def create_new_section(db_conn_pool, department, course, instructor, year,
                 raise InvalidSemesterException() from exc
             except UniqueViolation as exc:
                 raise SectionAlreadyExistsException() from exc
+
+class UserDoesNotExistException(BaseException):
+    """
+    Raised when we attempt to store a note belonging to a user that does not exist
+    """
+
+class SectionDoesNotExistException(BaseException):
+    """
+    Raised when a user attempts to upload a note for a section that does not exist
+    """
+
+async def store_note(db_conn_pool, section_id, content, email):
+    """
+    Attempts to store a note.
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute(
+                    """
+                    WITH owner AS (
+                        SELECT id FROM users WHERE email = %s
+                    )
+                    INSERT INTO notes (section_id, owner_id, content)
+                    SELECT %s, owner.id, %s
+                    FROM owner
+                    RETURNING id
+                    """,
+                    (email, section_id, content)
+                )
+                # If the result is None, then the owner user doesn't exist.
+                # Otherwise, we have successfully created the new section.
+                result = await cur.fetchone()
+                if result is None:
+                    raise UserDoesNotExistException()
+                return result[0]
+            except ForeignKeyViolation as exc:
+                raise SectionDoesNotExistException() from exc
