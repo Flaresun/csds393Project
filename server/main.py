@@ -9,6 +9,10 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from methods import hash_password, compare_password, get_user_by_email, get_all_users
 # Run with comamand : uvicorn main:app --reload
+<<<<<<< HEAD
+=======
+
+>>>>>>> backend
 import json
 from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import RedirectResponse
@@ -21,6 +25,7 @@ app = FastAPI()
 load_dotenv()
 db = Prisma(auto_register=True)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db.connect()
@@ -29,6 +34,7 @@ async def lifespan(app: FastAPI):
 @app.get("/")
 async def root():
     return {"message": "Hello, world!"}
+
 
 class SignupUser(BaseModel):
     email : str
@@ -81,10 +87,18 @@ async def login(user : LoginUser):
         return JSONResponse(content={"success":True, "message":"Login Successful", "user":{"email":email}},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
         return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
+<<<<<<< HEAD
+=======
+
+>>>>>>> backend
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     print("Received file:", file.filename)
     try:
+<<<<<<< HEAD
+=======
+
+>>>>>>> backend
         res : dict = await upload_file(db,"omeikeseth@gmail.com", file)
         print(res)
         return JSONResponse(content={"success":True, "message":res},status_code=200,headers={"X-Error": "Custom Error"})

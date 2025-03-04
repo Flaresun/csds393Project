@@ -30,4 +30,8 @@ class UserInDB(User):
     """
     Represents full user data in database
     """
+<<<<<<< HEAD
     hashed_password: str
+=======
+    hashed_password: str
+>>>>>>> backend

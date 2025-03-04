@@ -84,4 +84,8 @@ async def upload_file(db,current_user: str, file: UploadFile = File(...)):
     await db.disconnect()
     """
     
+<<<<<<< HEAD
     return {"message": "File uploaded successfully!", "file_url": file_url}
+=======
+    return {"message": "File uploaded successfully!", "file_url": file_url}
+>>>>>>> backend
