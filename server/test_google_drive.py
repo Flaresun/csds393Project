@@ -4,9 +4,8 @@ from main import app
 
 client = TestClient(app)
 
-# Test file upload (mock file)
 def test_upload_file():
-    with open("test.pdf", "wb") as f:  # Create a dummy PDF file
+    with open("test.pdf", "wb") as f:  # dummy PDF file
         f.write(b"dummy content")
 
     login_response = client.post("/login", json={
