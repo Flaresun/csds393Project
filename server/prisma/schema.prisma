@@ -60,5 +60,4 @@ model Note {
     user User @relation(fields: [uploader_id], references: [id])
     file_url String @unique
     created_at DateTime @default(now())  // timestamp
-    uploaded_by Int  // Foreign key to User.id
 }
