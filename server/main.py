@@ -224,16 +224,18 @@ async def get_notes_for_course(
     """
     try:
         notes = await get_notes_for_course_from_db(
-            db_conn_pool, request_data.department, request_data.course
+            db_conn_pool, request_data.department, request_data.course, not request_data.ids_only
         )
         serializable_notes = []
         for note in notes:
-            serializable_notes.append({
+            serializable_note = {
                 "id": note.note_id,
                 "section_id": note.section_id,
-                "owner_id": note.owner_id,
-                "content": note.content
-            })
+                "owner_id": note.owner_id
+            }
+            if note.content is not None:
+                serializable_note["content"] = note.content
+            serializable_notes.append(serializable_note)
         return JSONResponse(
             content = {
                 "notes": serializable_notes
