@@ -19,9 +19,9 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, DepartmentDoesNotExistException, \
-        FacultyDoesNotExistException, get_notes_for_course as get_notes_for_course_from_db, InvalidSemesterException, \
-            SectionAlreadyExistsException, SectionDoesNotExistException, store_note, \
-                UserAlreadyExistsException
+        FacultyDoesNotExistException, get_notes_for_course as get_notes_for_course_from_db, \
+            InvalidSemesterException, SectionAlreadyExistsException, SectionDoesNotExistException, \
+                store_note, UserAlreadyExistsException
 from model import CreateCourseRequestData, CreateSectionRequestData, GetNotesForCourseRequestData, \
     SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
 
@@ -222,9 +222,30 @@ async def get_notes_for_course(
     """
     Attempts to get notes for all sections of a particular course
     """
-    notes = await get_notes_for_course_from_db(db_conn_pool, request_data.department, request_data.course)
-    return JSONResponse(
-        content = {
-            "notes": notes
-        }
-    )
+    try:
+        notes = await get_notes_for_course_from_db(
+            db_conn_pool, request_data.department, request_data.course
+        )
+        serializable_notes = []
+        for note in notes:
+            serializable_notes.append({
+                "id": note.note_id,
+                "section_id": note.section_id,
+                "owner_id": note.owner_id,
+                "content": note.content
+            })
+        return JSONResponse(
+            content = {
+                "notes": serializable_notes
+            }
+        )
+    except DepartmentDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="department does not exist"
+        ) from exc
+    except CourseDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="course does not exist"
+        ) from exc

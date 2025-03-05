@@ -53,8 +53,7 @@ async def create_new_user(db_conn_pool, email, password_hash, user_role):
 
 class DepartmentDoesNotExistException(Exception):
     """
-    Raised when a faculty member attempts to perform an operation using a department that does not
-    exist
+    Raised when we attempt to perform an operation using a department that does not exist
     """
 
 class CourseAlreadyExistsException(Exception):
@@ -96,7 +95,7 @@ async def create_new_course(db_conn_pool, department_code, code, name):
 
 class CourseDoesNotExistException(Exception):
     """
-    Raised when a faculty member attempts to create a section of a course that does not exist
+    Raised when we attempt to perform an operation using a course that does not exist
     """
 
 class FacultyDoesNotExistException(Exception):
@@ -233,6 +232,16 @@ async def store_note(db_conn_pool, section_id, content, email):
             except ForeignKeyViolation as exc:
                 raise SectionDoesNotExistException() from exc
 
+class Note:
+    """
+    Represents a note stored in the database
+    """
+    def __init__(self, note_id: int, section_id: int, owner_id: int, content: str):
+        self.note_id = note_id
+        self.section_id = section_id
+        self.owner_id = owner_id
+        self.content = content
+
 async def get_notes_for_course(db_conn_pool, department, course):
     """
     Attempts to get all notes for a particular course from all sections
@@ -257,12 +266,40 @@ async def get_notes_for_course(db_conn_pool, department, course):
                 (department.upper(), course.upper())
             )
             results = await cur.fetchall()
+            # If we get no results from our query, then perhaps we did query with valid
+            # department and course codes, but no notes exist for that particular course. However,
+            # an empty result could indicate that we queried with a department and/or course code
+            # that does not exist. We check that here
+            if len(results) == 0:
+                # First, we check if the department exists.
+                await cur.execute(
+                    """
+                    SELECT id FROM departments WHERE code = %s
+                    """,
+                    (department,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise DepartmentDoesNotExistException()
+                department_id = result[0]
+                # Next, we check if the specified course exists
+                await cur.execute(
+                    """
+                    SELECT id FROM courses WHERE department_id = %s AND code = %s
+                    """,
+                    (department_id, course.upper())
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise CourseDoesNotExistException()
             notes = []
             for result in results:
-                notes.append({
-                    "id": result[0],
-                    "section_id": result[1],
-                    "owner_id": result[2],
-                    "content": result[3],
-                })
+                notes.append(
+                    Note(
+                        note_id = result[0],
+                        section_id = result[1],
+                        owner_id = result[2],
+                        content = result[3]
+                    )
+                )
             return notes
