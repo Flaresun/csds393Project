@@ -328,3 +328,38 @@ async def get_department_codes(db_conn_pool):
             for result in results:
                 department_codes.append(result[0])
             return department_codes
+
+async def get_courses_for_department(db_conn_pool, department_code):
+    """
+    Attempts to get the codes of all courses in a particular department
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                WITH department AS (
+                    SELECT id FROM departments WHERE code = %s
+                )
+                SELECT courses.code FROM courses, department
+                WHERE courses.id = department.id
+                """,
+                (department_code,)
+            )
+            results = await cur.fetchall()
+            # If we get no results from our query, then either we queried with a valid department
+            # code but no courses exist in that department, or we queried with a course code that
+            # does not exist. We check that here
+            if len(results) == 0:
+                await cur.execute(
+                    """
+                    SELECT id FROM departments WHERE code = %s
+                    """,
+                    (department_code,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise DepartmentDoesNotExistException()
+            course_codes = []
+            for result in results:
+                course_codes.append(result[0])
+            return course_codes

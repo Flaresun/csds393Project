@@ -19,11 +19,12 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, DepartmentDoesNotExistException, \
-        FacultyDoesNotExistException, get_department_codes, get_notes_for_course as \
-            get_notes_for_course_from_db, InvalidSemesterException, SectionAlreadyExistsException, \
-                SectionDoesNotExistException, store_note, UserAlreadyExistsException
-from model import CreateCourseRequestData, CreateSectionRequestData, GetNotesForCourseRequestData, \
-    SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
+        FacultyDoesNotExistException, get_courses_for_department, get_department_codes, \
+            get_notes_for_course as get_notes_for_course_from_db, InvalidSemesterException, \
+                SectionAlreadyExistsException, SectionDoesNotExistException, store_note, \
+                    UserAlreadyExistsException
+from model import CreateCourseRequestData, CreateSectionRequestData, GetCoursesRequestData, \
+    GetNotesForCourseRequestData, SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -216,9 +217,7 @@ async def upload_note(
         ) from exc
 
 @app.post("/get_notes_for_course")
-async def get_notes_for_course(
-    request_data: GetNotesForCourseRequestData
-):
+async def get_notes_for_course(request_data: GetNotesForCourseRequestData):
     """
     Attempts to get notes for all sections of a particular course
     """
@@ -263,3 +262,21 @@ async def get_departments():
             "departments": departments
         }
     )
+
+@app.post("/get_courses")
+async def get_courses(request_data: GetCoursesRequestData):
+    """
+    Attempts to get the codes of all courses in a particular department
+    """
+    try:
+        courses = await get_courses_for_department(db_conn_pool, request_data.department)
+        return JSONResponse(
+            content = {
+                "courses": courses
+            }
+        )
+    except DepartmentDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="department does not exist"
+        ) from exc

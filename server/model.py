@@ -71,3 +71,9 @@ class GetNotesForCourseRequestData(BaseModel):
     department: str
     course: str
     ids_only: bool
+
+class GetCoursesRequestData(BaseModel):
+    """
+    Represents data contained in a /get_courses request
+    """
+    department: str
