@@ -20,11 +20,12 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, DepartmentDoesNotExistException, \
         FacultyDoesNotExistException, get_courses_for_department, get_department_codes, \
-            get_notes_for_course as get_notes_for_course_from_db, InvalidSemesterException, \
-                SectionAlreadyExistsException, SectionDoesNotExistException, store_note, \
-                    UserAlreadyExistsException
+            get_notes_for_course as get_notes_for_course_from_db, get_section_ids_for_course, \
+                InvalidSemesterException, SectionAlreadyExistsException, \
+                    SectionDoesNotExistException, store_note, UserAlreadyExistsException
 from model import CreateCourseRequestData, CreateSectionRequestData, GetCoursesRequestData, \
-    GetNotesForCourseRequestData, SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
+    GetNotesForCourseRequestData, GetSectionsRequestData, SignUpRequestData, Token, TokenData, \
+        UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -279,4 +280,29 @@ async def get_courses(request_data: GetCoursesRequestData):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="department does not exist"
+        ) from exc
+
+@app.post("/get_sections")
+async def get_sections(request_data: GetSectionsRequestData):
+    """
+    Attempts to get IDs of all sections of a particular course
+    """
+    try:
+        section_ids = await get_section_ids_for_course(
+            db_conn_pool, request_data.department, request_data.course
+        )
+        return JSONResponse(
+            content = {
+                "section_ids": section_ids
+            }
+        )
+    except DepartmentDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="department does not exist"
+        ) from exc
+    except CourseDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="course does not exist"
         ) from exc

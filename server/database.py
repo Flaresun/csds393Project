@@ -134,7 +134,8 @@ async def create_new_section(db_conn_pool, department, course, instructor, year,
                         SELECT id FROM departments WHERE code = %s
                     ),
                     course AS (
-                        SELECT courses.id FROM courses, department WHERE department_id = department.id AND code = %s
+                        SELECT courses.id FROM courses, department 
+                        WHERE department_id = department.id AND code = %s
                     ),
                     faculty AS (
                         SELECT id FROM users WHERE email = %s AND user_role = 'faculty'
@@ -247,7 +248,8 @@ async def get_notes_for_course(db_conn_pool, department, course, get_content):
     Attempts to get all notes for a particular course from all sections
     """
     if get_content:
-        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+        note_selection_string = \
+            "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
     else:
         note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
     async with db_conn_pool.connection() as conn:
@@ -270,10 +272,10 @@ async def get_notes_for_course(db_conn_pool, department, course, get_content):
                 (department.upper(), course.upper())
             )
             results = await cur.fetchall()
-            # If we get no results from our query, then perhaps we did query with valid
-            # department and course codes, but no notes exist for that particular course. However,
-            # an empty result could indicate that we queried with a department and/or course code
-            # that does not exist. We check that here
+            # If we get no results from our query, then perhaps we did query with valid department
+            # and course codes, but no notes exist for that particular course. However, an empty
+            # result could indicate that we queried with a department and/or course code that does
+            # not exist. We check that here
             if len(results) == 0:
                 # First, we check if the department exists.
                 await cur.execute(
@@ -363,3 +365,55 @@ async def get_courses_for_department(db_conn_pool, department_code):
             for result in results:
                 course_codes.append(result[0])
             return course_codes
+
+async def get_section_ids_for_course(db_conn_pool, department_code, course_code):
+    """
+    Attempts to get the section IDs of all sections of a particular course
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                WITH department AS (
+                    SELECT id FROM departments WHERE code = %s
+                ),
+                course AS (
+                    SELECT courses.id FROM courses, department
+                    WHERE department_id = department.id AND code = %s
+                )
+                SELECT sections.id FROM sections, course
+                WHERE sections.course_id = course.id
+                """,
+                (department_code.upper(), course_code.upper())
+            )
+            results = await cur.fetchall()
+            # If we get no results from our query, then perhaps we did query with valid department
+            # and course codes, but no sections of that course exist. However, an empty result
+            # could indicate that we queried with a department and/or course code that does not
+            # exist. We check that here.
+            if len(results) == 0:
+                # First, we check if the department exists.
+                await cur.execute(
+                    """
+                    SELECT id FROM departments WHERE code = %s
+                    """,
+                    (department_code,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise DepartmentDoesNotExistException()
+                department_id = result[0]
+                # Next, we check if the specified course exists
+                await cur.execute(
+                    """
+                    SELECT id FROM courses WHERE department_id = %s AND code = %s
+                    """,
+                    (department_id, course_code.upper())
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise CourseDoesNotExistException()
+            section_ids = []
+            for result in results:
+                section_ids.append(result[0])
+            return section_ids
