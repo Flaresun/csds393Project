@@ -311,3 +311,20 @@ async def get_notes_for_course(db_conn_pool, department, course, get_content):
                     )
                 )
             return notes
+
+async def get_department_codes(db_conn_pool):
+    """
+    Attempts to get the codes of all available courses
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT code FROM departments
+                """
+            )
+            results = await cur.fetchall()
+            department_codes = []
+            for result in results:
+                department_codes.append(result[0])
+            return department_codes

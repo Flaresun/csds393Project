@@ -19,9 +19,9 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, DepartmentDoesNotExistException, \
-        FacultyDoesNotExistException, get_notes_for_course as get_notes_for_course_from_db, \
-            InvalidSemesterException, SectionAlreadyExistsException, SectionDoesNotExistException, \
-                store_note, UserAlreadyExistsException
+        FacultyDoesNotExistException, get_department_codes, get_notes_for_course as \
+            get_notes_for_course_from_db, InvalidSemesterException, SectionAlreadyExistsException, \
+                SectionDoesNotExistException, store_note, UserAlreadyExistsException
 from model import CreateCourseRequestData, CreateSectionRequestData, GetNotesForCourseRequestData, \
     SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
 
@@ -251,3 +251,15 @@ async def get_notes_for_course(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="course does not exist"
         ) from exc
+
+@app.get("/get_departments")
+async def get_departments():
+    """
+    Attempts to get the codes of all available departments
+    """
+    departments = await get_department_codes(db_conn_pool)
+    return JSONResponse(
+        content = {
+            "departments": departments
+        }
+    )
