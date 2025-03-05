@@ -77,3 +77,10 @@ class GetCoursesRequestData(BaseModel):
     Represents data contained in a /get_courses request
     """
     department: str
+
+class GetSectionsRequestData(BaseModel):
+    """
+    Represents data contained in a /get_sections request
+    """
+    department: str
+    course: str
