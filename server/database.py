@@ -242,14 +242,18 @@ class Note:
         self.owner_id = owner_id
         self.content = content
 
-async def get_notes_for_course(db_conn_pool, department, course):
+async def get_notes_for_course(db_conn_pool, department, course, get_content):
     """
     Attempts to get all notes for a particular course from all sections
     """
+    if get_content:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+    else:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
-                """
+                f"""
                 WITH department AS (
                     SELECT id FROM departments WHERE code = %s
                 ),
@@ -260,7 +264,7 @@ async def get_notes_for_course(db_conn_pool, department, course):
                 section_ids AS (
                     SELECT sections.id FROM sections, course WHERE course_id = course.id
                 )
-                SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes
+                {note_selection_string}
                 INNER JOIN section_ids ON notes.section_id = section_ids.id
                 """,
                 (department.upper(), course.upper())
@@ -294,12 +298,16 @@ async def get_notes_for_course(db_conn_pool, department, course):
                     raise CourseDoesNotExistException()
             notes = []
             for result in results:
+                if get_content:
+                    content = result[3]
+                else:
+                    content = None
                 notes.append(
                     Note(
                         note_id = result[0],
                         section_id = result[1],
                         owner_id = result[2],
-                        content = result[3]
+                        content = content
                     )
                 )
             return notes
