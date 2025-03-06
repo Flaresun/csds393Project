@@ -35,3 +35,22 @@ async def get_user_by_email(db,email : str) -> dict:
     except Exception as e:
         print(e)
         return {}
+
+async def get_notes_by_class_name(db, class_name: str) -> list[dict]:
+    await db.disconnect()
+    await db.connect()
+
+    try:
+        notes = await db.note.find_many(
+            where={
+                "OR":[
+                    {"className":{"contains":class_name}}
+                ]
+            }
+        )
+        res = [{"id":int(notes[i].id), "file_url":str(notes[i].file_url), "uploaded_by":notes[i].uploaded_by, "className":notes[i].className} for i in range(len(notes))]
+
+        return res
+    except Exception as e:
+        print(e)
+        return []

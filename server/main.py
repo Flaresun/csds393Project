@@ -7,7 +7,7 @@ import importlib
 import sys
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-from methods import hash_password, compare_password, get_user_by_email, get_all_users
+from methods import hash_password, compare_password, get_user_by_email, get_all_users, get_notes_by_class_name
 # Run with comamand : uvicorn main:app --reload
 import json
 from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks, UploadFile, File,Form
@@ -98,3 +98,15 @@ async def upload(file: UploadFile = File(...),className: str = Form(...),email: 
         return JSONResponse(content={"success":True, "message":res},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
         return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"})
+
+class ClassNameModel(BaseModel):
+    class_name : str
+@app.post("/get_class")
+async def get_class(class_name : ClassNameModel):
+    try:
+        params : list[ClassNameModel] = list(class_name)
+        class_name = params[0][1]
+        res = await get_notes_by_class_name(db,class_name)
+        return JSONResponse(content={"success":True, "message":list(res)},status_code=200,headers={"X-Error": "Custom Error"})
+    except BaseException as e:
+        return JSONResponse(content={"success":False, "message":str(e)},status_code=200,headers={"X-Error": "Custom Error"}) 
