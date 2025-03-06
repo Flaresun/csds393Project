@@ -35,3 +35,15 @@ async def get_user_by_email(db,email : str) -> dict:
     except Exception as e:
         print(e)
         return {}
+
+async def get_notes_by_class_name(db, class_name: str) -> list[dict]:
+    await db.disconnect()
+    await db.connect()
+    try:
+        notes = await db.note.find_many(
+            where={"className": class_name}  # only gets exact matches
+        )
+        return [dict(note) for note in notes]
+    except Exception as e:
+        print(e)
+        return []
