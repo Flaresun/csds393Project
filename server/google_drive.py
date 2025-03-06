@@ -88,8 +88,8 @@ async def upload_file(db,email: str,className:str, file: UploadFile = File(...))
                 },
             )
         await prisma.disconnect()
+
     except BaseException as e:
         return {"message": e, "file_url": file_url}
     
-    
-    return {"message": "File uploaded successfully!", "file_url": user}
+    return "File uploaded successfully!"

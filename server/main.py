@@ -93,8 +93,8 @@ async def upload(file: UploadFile = File(...),className: str = Form(...),email: 
 
 
     try:
-        res : dict = await upload_file(db,email,className,file)
-        print(res)
+        res : str = await upload_file(db,email,className,file)
+        
 
         return JSONResponse(content={"success":True, "message":res},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
