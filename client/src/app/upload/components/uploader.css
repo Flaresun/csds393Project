@@ -13,7 +13,7 @@
 
 .uploadText {
     position: absolute;
-    top: 20px;
+    top: 10px;
     color: white;
     font-size: 24px;
     text-align: center;
@@ -24,7 +24,7 @@
     content: '+';
     display: block;
     color: rgba(255, 255, 255, 0.5);
-    font-size: 100px;
+    font-size: 72px;
     text-align: center;
 }
 
