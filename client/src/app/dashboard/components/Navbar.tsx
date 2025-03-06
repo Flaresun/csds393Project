@@ -33,7 +33,7 @@ const Navbar = () => {
                 if (e.key !== "Enter") return;
                 const searchQuery = inputRef.current?.value
 
-                router.push(`/search?q=%${searchQuery}`)
+                router.push(`/search?q=${searchQuery}`)
             })
         }
     },[])

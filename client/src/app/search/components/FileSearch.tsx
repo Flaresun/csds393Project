@@ -1,62 +1,54 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './FileSearch.css';
 
 interface File {
-  name: string;
-  type: string;
-  url: string;
+  className: string;
+  id: number;
+  uploaded_by: string;
+  file_url: string;
+  fileName: String;
+
 }
 
 const FileSearch: React.FC = () => {
-  const files: File[] = [
-    {
-      name: "project_proposal.pdf",
-      type: "PDF",
-      url: "/files/project_proposal.pdf"
-    },
-    {
-      name: "financial_report.xlsx",
-      type: "Excel",
-      url: "/files/financial_report.xlsx"
-    },
-    {
-      name: "team_photo.jpg",
-      type: "JPEG",
-      url: "/files/team_photo.jpg"
-    },
-    {
-      name: "user_manual.docx",
-      type: "DOCX",
-      url: "/files/user_manual.docx"
-    },
-    {
-      name: "presentation.pptx",
-      type: "PPTX",
-      url: "/files/presentation.pptx"
-    }
-  ];
   
-  const [fileList, setFileList] = useState<File[]>(files);
+  const [fileList, setFileList] = useState<File[] | null>(null);
   const [text, setText] = useState<string>('');
 
-  const handleOnClick = () => {
-    if (text.trim()) {
-      const findFiles = files.filter((file) => 
-        file.name.toLowerCase().includes(text.toLowerCase())
-      );
-      
-      setFileList(findFiles);
-    }
-  };
+
+  const getFiles = async function (className : string|null) {
+    if (!className) return;
+    console.log(className)
+    const res = await fetch("/api/search", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({className:className}),
+    })
+
+    const {data} = await res.json();
+    console.log(data.message)
+    data.success && setFileList(data.message)
+  }
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const query = queryParams.get("q");
+    console.log(query); // "Math 224"
+    getFiles(query);
+
+    
+  },[])
 
   return (
     <div className='bg-gray-900 min-h-screen'>
       <div className="title">
         <h1>File Finder</h1>
       </div>
-      <div className="input__wrapper">
+      <div className="input__wrapper text-slate-900">
         <input
           type="text"
           placeholder="Search File"
@@ -69,28 +61,25 @@ const FileSearch: React.FC = () => {
             }
           }}
         />
-        <button disabled={!text.trim()} onClick={handleOnClick}>
+        <button onClick={() => getFiles(text)}>
           Search
         </button>
       </div>
 
       <div className="body">
-        {fileList.length === 0 && (
+        {fileList?.length === 0 && (
           <div className="notFound">No File Found</div>
         )}
 
-        {fileList.length > 0 && fileList.map((file, index) => {
+        {fileList?.length > 0 && fileList?.map((file, index) => {
           return (
             <div className="body__item" key={index}>
-              <h3>Name: {file.name}</h3>
-              <p>Type: {file.type}</p>
-              <a 
-                  href={file.url} 
-                  download={file.name} 
-                  className="download-link text-blue-500"
-                >
-                  Download
-                </a>
+              <h3>Name: {file.fileName}</h3>
+              <p>Type: pdf</p>
+                <p className="">className : {file.className}</p>
+                <p className="">Uploaded by : {file.uploaded_by}</p>
+                <a href={file.file_url} download={file.file_url} target="_blank" className="download-link text-blue-500">View</a>
+
             </div>
             
           );

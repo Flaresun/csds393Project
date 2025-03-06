@@ -84,6 +84,7 @@ async def upload_file(db,email: str,className:str, file: UploadFile = File(...))
                     'uploaded_by': email,
                     "className": className,
                     "file_url":file_url,
+                    "name":file.filename
                 },
             )
         await prisma.disconnect()
