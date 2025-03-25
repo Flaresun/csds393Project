@@ -107,6 +107,7 @@ async def get_class(class_name : ClassNameModel):
     try:
         params : list[ClassNameModel] = list(class_name)
         class_name = params[0][1]
+        print(class_name)
         res = await get_notes_by_class_name(db,class_name)
         return JSONResponse(content={"success":True, "message":list(res)},status_code=200,headers={"X-Error": "Custom Error"})
     except BaseException as e:
