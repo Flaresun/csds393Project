@@ -548,3 +548,43 @@ async def get_notes_for_section(db_conn_pool, section_id, get_content):
                     )
                 )
             return notes
+
+async def get_notes_for_user(
+    db_conn_pool, email, get_content
+):
+    """
+    Attempts to get all notes for a particular user
+    """
+    if get_content:
+        note_selection_string = \
+            "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+    else:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                f"""
+                WITH owner AS (
+                    SELECT id FROM users WHERE email = %s
+                )
+                {note_selection_string}, owner
+                WHERE notes.owner_id = owner.id
+                """,
+                (email,)
+            )
+            results = await cur.fetchall()
+            notes = []
+            for result in results:
+                if get_content:
+                    content = result[3]
+                else:
+                    content = None
+                notes.append(
+                    Note(
+                        note_id = result[0],
+                        section_id = result[1],
+                        owner_id = result[2],
+                        content = content
+                    )
+                )
+            return notes

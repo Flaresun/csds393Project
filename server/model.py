@@ -103,3 +103,9 @@ class GetNotesForSectionRequestData(BaseModel):
     """
     section_id: int
     ids_only: bool
+
+class GetMyNotesRequestData(BaseModel):
+    """
+    Represents data contained in a /get_my_notes request
+    """
+    ids_only: bool

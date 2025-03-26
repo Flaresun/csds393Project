@@ -22,13 +22,13 @@ from database import CourseAlreadyExistsException, CourseDoesNotExistException, 
         DepartmentDoesNotExistException, FacultyDoesNotExistException, get_courses_for_department,\
             get_department_codes, get_note as get_note_from_db, get_notes_for_course as \
                 get_notes_for_course_from_db, get_notes_for_section as \
-                    get_notes_for_section_from_db, get_section_ids_for_course, \
+                    get_notes_for_section_from_db, get_notes_for_user, get_section_ids_for_course,\
                         InvalidSemesterException, NoteDoesNotExistException, \
                             SectionAlreadyExistsException, SectionDoesNotExistException, \
                                 store_note, UserAlreadyExistsException, \
                                     UserIsNotOwnerOrFacultyException
 from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
-    GetCoursesRequestData, GetNoteRequestData, GetNotesForCourseRequestData, \
+    GetCoursesRequestData, GetMyNotesRequestData, GetNoteRequestData, GetNotesForCourseRequestData, \
         GetNotesForSectionRequestData, GetSectionsRequestData, SignUpRequestData, Token, TokenData,\
             UploadNoteRequestData, User
 
@@ -388,3 +388,30 @@ async def get_notes_for_section(request_data: GetNotesForSectionRequestData):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="section does not exist"
         ) from exc
+
+@app.post("/get_my_notes")
+async def get_my_notes(
+    current_user: Annotated[User, Depends(get_current_user)],
+    request_data: GetMyNotesRequestData
+):
+    """
+    Attempts to get all the user's notes
+    """
+    notes = await get_notes_for_user(
+        db_conn_pool, current_user.email, not request_data.ids_only
+    )
+    serializable_notes = []
+    for note in notes:
+        serializable_note = {
+            "id": note.note_id,
+            "section_id": note.section_id,
+            "owner_id": note.owner_id
+        }
+        if note.content is not None:
+            serializable_note["content"] = note.content
+        serializable_notes.append(serializable_note)
+    return JSONResponse(
+        content = {
+            "notes": serializable_notes
+        }
+    )
