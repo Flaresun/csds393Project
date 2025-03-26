@@ -90,3 +90,9 @@ class DeleteNoteRequestData(BaseModel):
     Represents data contained in a /delete_note request
     """
     note_id: int
+
+class GetNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /get_note request
+    """
+    note_id: int

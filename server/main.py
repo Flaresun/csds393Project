@@ -20,13 +20,14 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, delete_note as delete_note_from_db, \
         DepartmentDoesNotExistException, FacultyDoesNotExistException, get_courses_for_department,\
-            get_department_codes, get_notes_for_course as get_notes_for_course_from_db, \
-                get_section_ids_for_course, InvalidSemesterException, NoteDoesNotExistException, \
-                    SectionAlreadyExistsException, SectionDoesNotExistException, store_note, \
-                        UserAlreadyExistsException, UserIsNotOwnerOrFacultyException
+            get_department_codes, get_note as get_note_from_db, get_notes_for_course as \
+                get_notes_for_course_from_db, get_section_ids_for_course, InvalidSemesterException,\
+                    NoteDoesNotExistException, SectionAlreadyExistsException, \
+                        SectionDoesNotExistException, store_note, UserAlreadyExistsException, \
+                            UserIsNotOwnerOrFacultyException
 from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
-    GetCoursesRequestData, GetNotesForCourseRequestData, GetSectionsRequestData, SignUpRequestData,\
-        Token, TokenData, UploadNoteRequestData, User
+    GetCoursesRequestData, GetNoteRequestData, GetNotesForCourseRequestData, \
+        GetSectionsRequestData, SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -329,4 +330,28 @@ async def delete_note(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="only note owner or faculty can delete note"
+        ) from exc
+
+@app.post("/get_note")
+async def get_note(request_data: GetNoteRequestData):
+    """
+    Attempts to get the note with the specified id
+    """
+    try:
+        note = await get_note_from_db(
+            db_conn_pool, request_data.note_id
+        )
+        serializable_note = {
+            "id": note.note_id,
+            "section_id": note.section_id,
+            "owner_id": note.owner_id,
+            "content": note.content,
+        }
+        return JSONResponse(
+            content = serializable_note
+        )
+    except NoteDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="note does not exist"
         ) from exc

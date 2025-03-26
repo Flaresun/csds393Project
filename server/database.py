@@ -420,7 +420,7 @@ async def get_section_ids_for_course(db_conn_pool, department_code, course_code)
 
 class NoteDoesNotExistException(BaseException):
     """
-    Raised when a user attempts to delete a note that does not exist
+    Raised when a user attempts to perform an action on a note that does not exist
     """
 
 class UserIsNotOwnerOrFacultyException(BaseException):
@@ -478,3 +478,26 @@ async def delete_note(db_conn_pool, note_id, email):
                 # The note does exist and either the owner is the caller or the caller does have
                 # the faculty role, but for some reason the note wasn't deleted.
                 raise UnknownEmptyResultException()
+
+async def get_note(db_conn_pool, note_id):
+    """
+    Attempts to get the note with the specified id
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT * FROM notes WHERE notes.id = %s
+                """,
+                (note_id,)
+            )
+            result = await cur.fetchone()
+            if result is None:
+                raise NoteDoesNotExistException()
+            return Note(
+                note_id = result[0],
+                section_id = result[1],
+                owner_id = result[2],
+                content = result[3]
+            )
+            
