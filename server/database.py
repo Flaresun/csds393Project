@@ -202,7 +202,7 @@ class UserDoesNotExistException(BaseException):
 
 class SectionDoesNotExistException(BaseException):
     """
-    Raised when a user attempts to upload a note for a section that does not exist
+    Raised when a user attempts to reference a section that does not exist
     """
 
 async def store_note(db_conn_pool, section_id, content, email):
@@ -500,4 +500,51 @@ async def get_note(db_conn_pool, note_id):
                 owner_id = result[2],
                 content = result[3]
             )
-            
+
+async def get_notes_for_section(db_conn_pool, section_id, get_content):
+    """
+    Attempts to get all notes for a particular section of a course
+    """
+    if get_content:
+        note_selection_string = \
+            "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+    else:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                f"""
+                {note_selection_string}
+                WHERE notes.section_id = %s
+                """,
+                (section_id,)
+            )
+            results = await cur.fetchall()
+            # If we get no results from our query, then perhaps we did query with a valid section
+            # id, but no notes exist for that section. However, an empty result could indicate that
+            # we queried with a section id that does not exist. We check that here
+            if len(results) == 0:
+                await cur.execute(
+                    """
+                    SELECT * FROM sections WHERE id = %s
+                    """,
+                    (section_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise SectionDoesNotExistException()
+            notes = []
+            for result in results:
+                if get_content:
+                    content = result[3]
+                else:
+                    content = None
+                notes.append(
+                    Note(
+                        note_id = result[0],
+                        section_id = result[1],
+                        owner_id = result[2],
+                        content = content
+                    )
+                )
+            return notes

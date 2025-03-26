@@ -21,13 +21,16 @@ from database import CourseAlreadyExistsException, CourseDoesNotExistException, 
     create_new_section, create_new_user, delete_note as delete_note_from_db, \
         DepartmentDoesNotExistException, FacultyDoesNotExistException, get_courses_for_department,\
             get_department_codes, get_note as get_note_from_db, get_notes_for_course as \
-                get_notes_for_course_from_db, get_section_ids_for_course, InvalidSemesterException,\
-                    NoteDoesNotExistException, SectionAlreadyExistsException, \
-                        SectionDoesNotExistException, store_note, UserAlreadyExistsException, \
-                            UserIsNotOwnerOrFacultyException
+                get_notes_for_course_from_db, get_notes_for_section as \
+                    get_notes_for_section_from_db, get_section_ids_for_course, \
+                        InvalidSemesterException, NoteDoesNotExistException, \
+                            SectionAlreadyExistsException, SectionDoesNotExistException, \
+                                store_note, UserAlreadyExistsException, \
+                                    UserIsNotOwnerOrFacultyException
 from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
     GetCoursesRequestData, GetNoteRequestData, GetNotesForCourseRequestData, \
-        GetSectionsRequestData, SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
+        GetNotesForSectionRequestData, GetSectionsRequestData, SignUpRequestData, Token, TokenData,\
+            UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -354,4 +357,34 @@ async def get_note(request_data: GetNoteRequestData):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="note does not exist"
+        ) from exc
+
+@app.post("/get_notes_for_section")
+async def get_notes_for_section(request_data: GetNotesForSectionRequestData):
+    """
+    Attempts to get notes for a particular section of a course.
+    """
+    try:
+        notes = await get_notes_for_section_from_db(
+            db_conn_pool, request_data.section_id, not request_data.ids_only
+        )
+        serializable_notes = []
+        for note in notes:
+            serializable_note = {
+                "id": note.note_id,
+                "section_id": note.section_id,
+                "owner_id": note.owner_id
+            }
+            if note.content is not None:
+                serializable_note["content"] = note.content
+            serializable_notes.append(serializable_note)
+        return JSONResponse(
+            content = {
+                "notes": serializable_notes
+            }
+        )
+    except SectionDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="section does not exist"
         ) from exc
