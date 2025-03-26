@@ -23,4 +23,5 @@ model Note {
     created_at DateTime @default(now())  // timestamp
     uploaded_by String  // Foreign key to User.id
     className String 
+    name String
 }
