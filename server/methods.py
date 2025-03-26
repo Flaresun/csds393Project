@@ -1,12 +1,14 @@
 import bcrypt 
 from prisma import Prisma
 from prisma.models import User
+import jwt 
 
 def hash_password(password : str) -> str:
     """Hashes the password using bcrypt"""
     bytes_password : bytes = password.encode()
     hashed_password : bytes = bcrypt.hashpw(bytes_password, bcrypt.gensalt())
     return hashed_password.decode("utf-8")
+
 def compare_password(password : bytes, user_password : bytes) -> bool:
     """Compares the given password with the hashed user_password"""
     if bcrypt.checkpw(password, user_password):

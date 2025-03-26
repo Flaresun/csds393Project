@@ -5,17 +5,17 @@ import { headers } from 'next/headers'
 
 
 export async function POST(req : Request) {
-    const {className} = await req.json();
+    const {className,token} = await req.json();
 
-    const res = await fetch(process.env.BACKEND_URL + "/get_class",{
+    return await fetch(process.env.BACKEND_URL + "/get_class",{
         method : "POST",
         body: JSON.stringify({ class_name:className}),
         headers: {
             'Content-Type': 'application/json',
-        }
+            Authorization: `Bearer ${token}`,
+        },
+        credentials: "include"
     }); 
-    const data = await res.json();
-    console.log(data)
-    return Response.json({ data });
+
 
 }

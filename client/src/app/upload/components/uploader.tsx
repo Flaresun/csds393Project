@@ -16,6 +16,14 @@ const page = () => {
         }
     };
     
+    const token = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("access_token="))?.split("=")[1];
+
+    if (!token) {
+        console.error("No token found");
+        return;
+    }
     const uploadFile = async () => {
         if (!file) {
             setMessage("Please select a file first.");
@@ -29,7 +37,8 @@ const page = () => {
         console.log(userEmail)
         try {
             const {data} = await axios.post("api/upload",formData, {
-                headers: { "Content-Type": "multipart/form-data"},
+                headers: { "Content-Type": "multipart/form-data",Authorization: `Bearer ${token}`,},
+                withCredentials: true,
             });
             console.log(data);
             setMessage(`File uploaded successfully! File ID: ${data.file_id}`);

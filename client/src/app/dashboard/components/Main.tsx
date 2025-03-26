@@ -48,6 +48,9 @@ const Main: React.FC = () => {
     { icon: "📄", name: "Design Document", type: "DOCx file", size: "1.2 MB" },
   ]);
 
+
+  
+
   return (
     <div className="flex bg-slate-900">
 

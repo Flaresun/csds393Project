@@ -17,7 +17,8 @@ export async function POST(req : Request) {
         method : "POST",
         body:formData,
         headers: {
-        }
+        },
+        credentials: "include",
     }); 
     const data = await res.json();
     return Response.json({ data });

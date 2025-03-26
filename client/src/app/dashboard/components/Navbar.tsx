@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 const Navbar = () => {
     const logoWidth : number = 100;
     const [profileModule, setProfileModule] = useState<boolean>(false);
-    const {panel, setPanel} = useContext<any>(AppContent);
+    const {panel, setPanel, setIsAuth} = useContext<any>(AppContent);
     const inputRef = useRef(null);
     const router = useRouter();
     const handlePanel = () => {
@@ -26,6 +26,19 @@ const Navbar = () => {
         router.push("/dashboard")
     }
     
+    const handleLogout = async () => {
+        const data = await fetch("/api/logout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include"
+        })
+        console.log(data);
+        setIsAuth(false);
+        router.push("/");
+    }
+
     useEffect(() => {
         const inputField = document.getElementsByClassName("searchBar");
         for (let i = 0; i < inputField.length; i++) {
@@ -85,7 +98,7 @@ const Navbar = () => {
                                     <MdOutlinePrivacyTip size={25}/>
                                     <p className="ml-2">Privacy</p>
                                 </div>
-                                <div className="flex items-center text-center justify-start transition-all ease-in-out hover:bg-gray-400 w-full rounded-md py-2">
+                                <div onClick={handleLogout} className="flex items-center text-center justify-start transition-all ease-in-out hover:bg-gray-400 w-full rounded-md py-2">
                                     <IoIosLogOut size={25}/>
                                     <p className="ml-2">Logout</p>
                                 </div>

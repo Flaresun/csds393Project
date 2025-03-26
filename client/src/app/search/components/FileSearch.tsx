@@ -16,20 +16,23 @@ const FileSearch: React.FC = () => {
   
   const [fileList, setFileList] = useState<File[] | null>(null);
   const [text, setText] = useState<string>('');
+  
 
-
-  const getFiles = async function (className : string|null) {
+  const getFiles = async function (className : string|null, token:string) {
     if (!className) return;
     console.log(className)
     const res = await fetch("/api/search", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({className:className}),
+      credentials: "include",
+      body: JSON.stringify({className:className, token:token}),
     })
 
-    const {data} = await res.json();
+    const data = await res.json();
+    console.log(data)
     console.log(data.message)
     data.success && setFileList(data.message)
   }
@@ -38,8 +41,16 @@ const FileSearch: React.FC = () => {
     const queryParams = new URLSearchParams(window.location.search);
     const query = queryParams.get("q");
     console.log(query); // "Math 224"
-    getFiles(query);
 
+    const token = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("access_token="))?.split("=")[1];
+    console.log(token)
+    if (!token) {
+       console.log("No token found");
+       return;
+  }
+    getFiles(query,token);   
     
   },[])
 
