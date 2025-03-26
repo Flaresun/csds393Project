@@ -84,3 +84,9 @@ class GetSectionsRequestData(BaseModel):
     """
     department: str
     course: str
+
+class DeleteNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /delete_note request
+    """
+    note_id: int

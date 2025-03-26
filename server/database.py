@@ -417,3 +417,64 @@ async def get_section_ids_for_course(db_conn_pool, department_code, course_code)
             for result in results:
                 section_ids.append(result[0])
             return section_ids
+
+class NoteDoesNotExistException(BaseException):
+    """
+    Raised when a user attempts to delete a note that does not exist
+    """
+
+class UserIsNotOwnerOrFacultyException(BaseException):
+    """
+    Used when a user who does not have the faculty role attempts to delete a note they do not own
+    """
+
+async def delete_note(db_conn_pool, note_id, email):
+    """
+    Attempts to delete a note with the specified ID
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                WITH owner AS (
+                    SELECT id FROM users WHERE email = %s
+                )
+                DELETE FROM notes USING owner
+                WHERE notes.id = %s AND (
+                    owner_id = owner.id OR owner.id IN (
+                        SELECT id FROM users WHERE user_role = 'faculty'
+                    )
+                )
+                """,
+                (email, note_id)
+            )
+            num_rows_deleted = cur.rowcount
+            # If no rows were deleted, then either we attempted to delete a note that doesn't
+            # exist or we attempted to delete a node belonging to a user that is not the calling
+            # user and the calling user doesn't have the faculty role. We check that here
+            print(num_rows_deleted)
+            if num_rows_deleted == 0:
+                result = await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException()
+                note_owner_id = result[2]
+                # Next, we check if the user is not the owner and doesn't have the faculty role
+                result = await cur.execute(
+                    """
+                    SELECT id, user_role FROM users WHERE email = %s
+                    """,
+                    (email,)
+                )
+                result = await cur.fetchone()
+                caller_id, caller_role = result[0], result[1]
+                if note_owner_id != caller_id and caller_role != 'faculty':
+                    raise UserIsNotOwnerOrFacultyException()
+                # The note does exist and either the owner is the caller or the caller does have
+                # the faculty role, but for some reason the note wasn't deleted.
+                raise UnknownEmptyResultException()

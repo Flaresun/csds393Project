@@ -18,14 +18,15 @@ from prisma import Prisma
 from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
-    create_new_section, create_new_user, DepartmentDoesNotExistException, \
-        FacultyDoesNotExistException, get_courses_for_department, get_department_codes, \
-            get_notes_for_course as get_notes_for_course_from_db, get_section_ids_for_course, \
-                InvalidSemesterException, SectionAlreadyExistsException, \
-                    SectionDoesNotExistException, store_note, UserAlreadyExistsException
-from model import CreateCourseRequestData, CreateSectionRequestData, GetCoursesRequestData, \
-    GetNotesForCourseRequestData, GetSectionsRequestData, SignUpRequestData, Token, TokenData, \
-        UploadNoteRequestData, User
+    create_new_section, create_new_user, delete_note as delete_note_from_db, \
+        DepartmentDoesNotExistException, FacultyDoesNotExistException, get_courses_for_department,\
+            get_department_codes, get_notes_for_course as get_notes_for_course_from_db, \
+                get_section_ids_for_course, InvalidSemesterException, NoteDoesNotExistException, \
+                    SectionAlreadyExistsException, SectionDoesNotExistException, store_note, \
+                        UserAlreadyExistsException, UserIsNotOwnerOrFacultyException
+from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
+    GetCoursesRequestData, GetNotesForCourseRequestData, GetSectionsRequestData, SignUpRequestData,\
+        Token, TokenData, UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -193,30 +194,6 @@ async def create_section(
         }
     )
 
-@app.post("/upload_note")
-async def upload_note(
-    current_user: Annotated[User, Depends(get_current_user)], request_data: UploadNoteRequestData
-):
-    """
-    Attempts to upload a note for a particular section
-    """
-    # We don't catch UserDoesNotExistException because that shouldn't happen: if an account for
-    # the caller doesn't exist, authentication should fail.
-    try:
-        note_id = await store_note(
-            db_conn_pool, request_data.section_id, request_data.content, current_user.email
-        )
-        return JSONResponse(
-            content = {
-                "id": note_id
-            }
-        )
-    except SectionDoesNotExistException as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="section does not exist"
-        ) from exc
-
 @app.post("/get_notes_for_course")
 async def get_notes_for_course(request_data: GetNotesForCourseRequestData):
     """
@@ -305,4 +282,51 @@ async def get_sections(request_data: GetSectionsRequestData):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="course does not exist"
+        ) from exc
+
+@app.post("/upload_note")
+async def upload_note(
+    current_user: Annotated[User, Depends(get_current_user)], request_data: UploadNoteRequestData
+):
+    """
+    Attempts to upload a note for a particular section
+    """
+    # We don't catch UserDoesNotExistException because that shouldn't happen: if an account for
+    # the caller doesn't exist, authentication should fail.
+    try:
+        note_id = await store_note(
+            db_conn_pool, request_data.section_id, request_data.content, current_user.email
+        )
+        return JSONResponse(
+            content = {
+                "id": note_id
+            }
+        )
+    except SectionDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="section does not exist"
+        ) from exc
+
+@app.post("/delete_note")
+async def delete_note(
+    current_user: Annotated[User, Depends(get_current_user)], request_data: DeleteNoteRequestData
+):
+    """
+    Attempts to delete the note with the specified id
+    """
+    try:
+        await delete_note_from_db(
+            db_conn_pool, request_data.note_id, current_user.email
+        )
+        return Response(content=None)
+    except NoteDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="note does not exist"
+        ) from exc
+    except UserIsNotOwnerOrFacultyException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="only note owner or faculty can delete note"
         ) from exc
