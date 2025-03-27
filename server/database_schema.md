@@ -68,7 +68,8 @@ CREATE TABLE note_ratings (
 	note_id INTEGER NOT NULL REFERENCES notes(id),
 	rater INTEGER NOT NULL REFERENCES users(id),
 	rating INTEGER NOT NULL,
-	CHECK (rating >= 1 AND rating <= 10)
+	CHECK (rating >= 1 AND rating <= 10),
+	UNIQUE (note_id, rater)
 )
 ```
 

@@ -25,12 +25,12 @@ from database import CourseAlreadyExistsException, CourseDoesNotExistException, 
                     get_notes_for_section_from_db, get_notes_for_user, get_section_ids_for_course,\
                         InvalidSemesterException, NoteDoesNotExistException, \
                             SectionAlreadyExistsException, SectionDoesNotExistException, \
-                                store_note, UserAlreadyExistsException, \
+                                set_or_update_note_rating, store_note, UserAlreadyExistsException,\
                                     UserIsNotOwnerOrFacultyException
 from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
-    GetCoursesRequestData, GetMyNotesRequestData, GetNoteRequestData, GetNotesForCourseRequestData, \
-        GetNotesForSectionRequestData, GetSectionsRequestData, SignUpRequestData, Token, TokenData,\
-            UploadNoteRequestData, User
+    GetCoursesRequestData, GetMyNotesRequestData, GetNoteRequestData, \
+        GetNotesForCourseRequestData, GetNotesForSectionRequestData, GetSectionsRequestData, \
+            RateNoteRequestData, SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -415,3 +415,31 @@ async def get_my_notes(
             "notes": serializable_notes
         }
     )
+
+@app.post("/rate_note")
+async def rate_note(
+    current_user: Annotated[User, Depends(get_current_user)],
+    request_data: RateNoteRequestData
+):
+    """
+    Attempts to leave a rating from a particular user on a particular note
+    """
+    try:
+        rating = request_data.rating
+        if rating < 1 or rating > 10:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="rating must be integer between 1 and 10 inclusive"
+            )
+        await set_or_update_note_rating(
+            db_conn_pool, current_user.email, request_data.note_id, request_data.rating
+        )
+    except NoteDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="note does not exist"
+        ) from exc
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

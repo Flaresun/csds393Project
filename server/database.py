@@ -588,3 +588,45 @@ async def get_notes_for_user(
                     )
                 )
             return notes
+
+async def set_or_update_note_rating(
+    db_conn_pool, email, note_id, rating
+):
+    """
+    Attempts to assign a rating from a particular user to a particular note, or update that user's
+    existing rating for that note, if such a rating exists.
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute(
+                    """
+                    WITH rater AS (
+                        SELECT id FROM users WHERE email = %s
+                    )
+                    INSERT INTO note_ratings (note_id, rater, rating)
+                    SELECT %s, rater.id, %s
+                    FROM rater
+                    ON CONFLICT (note_id, rater)
+                    DO UPDATE SET rating = %s
+                    """,
+                    (email, note_id, rating, rating)
+                )
+            except ForeignKeyViolation as exc:
+                # Check if the note with the specified ID exists
+                # Rollback the previous failed transaction so we can run another
+                await conn.rollback()
+                await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException() from exc
+                # Technically, we could also get a foreign key violation if the user doesn't exist
+                # in the database. However in that case, an API call should fail at the 
+                # authentication step, so we don't handle this case here and just raise an unknown
+                # exception instead.
+                raise UnknownEmptyResultException() from exc

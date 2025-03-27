@@ -109,3 +109,10 @@ class GetMyNotesRequestData(BaseModel):
     Represents data contained in a /get_my_notes request
     """
     ids_only: bool
+
+class RateNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /rate_note request
+    """
+    note_id: int
+    rating: int
