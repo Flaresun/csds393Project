@@ -23,14 +23,16 @@ from database import CourseAlreadyExistsException, CourseDoesNotExistException, 
             get_department_codes, get_note as get_note_from_db, get_notes_for_course as \
                 get_notes_for_course_from_db, get_notes_for_section as \
                     get_notes_for_section_from_db, get_notes_for_user, get_section_ids_for_course,\
-                        InvalidSemesterException, NoteDoesNotExistException, \
-                            SectionAlreadyExistsException, SectionDoesNotExistException, \
-                                set_or_update_note_rating, store_note, UserAlreadyExistsException,\
-                                    UserIsNotOwnerOrFacultyException
+                        InvalidSemesterException, leave_comment_on_note, NoteDoesNotExistException,\
+                            ParentCommentDoesNotExistException, SectionAlreadyExistsException, \
+                                SectionDoesNotExistException, set_or_update_note_rating, \
+                                    store_note, UserAlreadyExistsException, \
+                                        UserIsNotOwnerOrFacultyException
 from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
     GetCoursesRequestData, GetMyNotesRequestData, GetNoteRequestData, \
         GetNotesForCourseRequestData, GetNotesForSectionRequestData, GetSectionsRequestData, \
-            RateNoteRequestData, SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
+            LeaveCommentRequestData, RateNoteRequestData, SignUpRequestData, Token, TokenData, \
+                UploadNoteRequestData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -438,6 +440,39 @@ async def rate_note(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="note does not exist"
+        ) from exc
+
+@app.post("/leave_comment")
+async def leave_comment(
+    current_user: Annotated[User, Depends(get_current_user)],
+    request_data: LeaveCommentRequestData
+):
+    """
+    Attempts to leave a comment from a particular user on a particular note, possibly in reply to
+    an existing comment on that note
+    """
+    try:
+        new_note_id = await leave_comment_on_note(
+            db_conn_pool,
+            current_user.email,
+            request_data.note_id,
+            request_data.parent_com_id,
+            request_data.content
+        )
+        return JSONResponse(
+            content = {
+                "id": new_note_id
+            }
+        )
+    except NoteDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="note does not exist"
+        ) from exc
+    except ParentCommentDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="parent comment does not exist"
         ) from exc
 
 if __name__ == "__main__":

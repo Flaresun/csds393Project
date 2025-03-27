@@ -549,9 +549,7 @@ async def get_notes_for_section(db_conn_pool, section_id, get_content):
                 )
             return notes
 
-async def get_notes_for_user(
-    db_conn_pool, email, get_content
-):
+async def get_notes_for_user(db_conn_pool, email, get_content):
     """
     Attempts to get all notes for a particular user
     """
@@ -589,9 +587,7 @@ async def get_notes_for_user(
                 )
             return notes
 
-async def set_or_update_note_rating(
-    db_conn_pool, email, note_id, rating
-):
+async def set_or_update_note_rating(db_conn_pool, email, note_id, rating):
     """
     Attempts to assign a rating from a particular user to a particular note, or update that user's
     existing rating for that note, if such a rating exists.
@@ -626,7 +622,88 @@ async def set_or_update_note_rating(
                 if result is None:
                     raise NoteDoesNotExistException() from exc
                 # Technically, we could also get a foreign key violation if the user doesn't exist
-                # in the database. However in that case, an API call should fail at the 
+                # in the database. However in that case, an API call should fail at the
                 # authentication step, so we don't handle this case here and just raise an unknown
                 # exception instead.
+                raise UnknownEmptyResultException() from exc
+
+class ParentCommentDoesNotExistException(BaseException):
+    """
+    Raised when a user attempts to reply to a comment that does not exist
+    """
+
+async def leave_comment_on_note(db_conn_pool, email, note_id, parent_com_id, content):
+    """
+    Attempts to leave a comment from a particular user on a particular note, possibly in reply to
+    an existing comment.
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                if parent_com_id is None:
+                    await cur.execute(
+                        """
+                        WITH commenter AS (
+                            SELECT id FROM users WHERE email = %s
+                        )
+                        INSERT INTO comments (note_id, parent_comment_id, commenter_id, content)
+                        SELECT %s, NULL, commenter.id, %s
+                        FROM commenter
+                        RETURNING id
+                        """,
+                        (email, note_id, content)
+                    )
+                    result = await cur.fetchone()
+                    return result[0]
+                # We have a parent comment ID, so leave the comment as a reply
+                await cur.execute(
+                    """
+                    WITH parent_comment_note AS (
+                        SELECT note_id FROM comments WHERE id = %s
+                    ),
+                    commenter AS (
+                        SELECT id FROM users WHERE email = %s
+                    )
+                    INSERT INTO comments (note_id, parent_comment_id, commenter_id, content)
+                    SELECT parent_comment_note.note_id, %s, commenter.id, %s
+                    FROM parent_comment_note, commenter
+                    RETURNING id
+                    """,
+                    (parent_com_id, email, parent_com_id, content)
+                )
+                result = await cur.fetchone()
+                # If the parent comment with the specified ID doesn't exist, the result will be
+                # None. Otherwise, return the id of the new comment
+                if result is not None:
+                    return result[0]
+                # The result is None, so we check if the parent comment with the specified ID
+                # actually exists and raise the appropriate exception
+                await cur.execute(
+                    """
+                    SELECT * FROM comments WHERE id = %s
+                    """,
+                    (parent_com_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise ParentCommentDoesNotExistException()
+                # The comment does exist, so something else must have gone wrong
+                raise UnknownEmptyResultException()
+            except ForeignKeyViolation as exc:
+                # Rollback the previous failed transaction so we can run another
+                await conn.rollback()
+                # We could get this exception if we try to leave a comment on a note that doesn't
+                # exist or if the user attempting to leave the comment doesn't exist. However in
+                # that latter case, the API call should fail at the authentication step so we just
+                # raise an unknown exception instead.
+                await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException() from exc
+                # The note does exist, so something unknown must have gone wrong
                 raise UnknownEmptyResultException() from exc

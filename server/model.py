@@ -2,6 +2,8 @@
 Contains data models for HTTP requests and responses
 """
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 class Token(BaseModel):
@@ -116,3 +118,11 @@ class RateNoteRequestData(BaseModel):
     """
     note_id: int
     rating: int
+
+class LeaveCommentRequestData(BaseModel):
+    """
+    Represents data contained in a /leave_comment request
+    """
+    note_id: int
+    parent_com_id: Optional[int]
+    content: str
