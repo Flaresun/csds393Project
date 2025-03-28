@@ -126,3 +126,9 @@ class LeaveCommentRequestData(BaseModel):
     note_id: int
     parent_com_id: Optional[int]
     content: str
+
+class GetCommentsForNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /get_comments_for_note request
+    """
+    note_id: int

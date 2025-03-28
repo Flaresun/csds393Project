@@ -707,3 +707,60 @@ async def leave_comment_on_note(db_conn_pool, email, note_id, parent_com_id, con
                     raise NoteDoesNotExistException() from exc
                 # The note does exist, so something unknown must have gone wrong
                 raise UnknownEmptyResultException() from exc
+
+class Comment:
+    """
+    Represents a comment stored in the database
+    """
+    def __init__(
+        self,
+        comment_id: int,
+        note_id: int,
+        parent_comment_id: int,
+        commenter_id: int,
+        content: str
+    ):
+        self.comment_id = comment_id
+        self.note_id = note_id
+        self.parent_comment_id = parent_comment_id
+        self.commenter_id = commenter_id
+        self.content = content
+
+async def get_comments_for_note(db_conn_pool, note_id):
+    """
+    Attempts to get all comments for a particular note
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT * FROM comments WHERE note_id = %s
+                """,
+                (note_id,)
+            )
+            results = await cur.fetchall()
+            # If we get no results from our query, then perhaps we did query with a valid note id
+            # but no comments exist for that note. However, an empty result could indicate that a
+            # note with the specified id does not exist. We check that here
+            if len(results) == 0:
+                await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException()
+            comments = []
+            for result in results:
+                comments.append(
+                    Comment(
+                        comment_id = result[0],
+                        note_id = result[1],
+                        parent_comment_id = result[2],
+                        commenter_id = result[3],
+                        content = result[4]
+                    )
+                )
+            return comments
