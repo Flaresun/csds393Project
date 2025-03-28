@@ -110,7 +110,12 @@ const Main: React.FC = () => {
     { icon: "📄", name: "Design Document", type: "DOCx file", size: "1.2 MB", url:"" },
   ]);
 
+<<<<<<< HEAD
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
+=======
+
+  
+>>>>>>> 9cb608f211d2321407332d137a8c2ab8b510e212
 
   return (
     <div className="flex bg-slate-900">

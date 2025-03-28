@@ -35,11 +35,13 @@ const AuthPage = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email:email, password:password, role:role }),
+          credentials: 'include',
         })
 
-        const {data} = await res.json();
-        console.log(data.user.email)
+        const data = await res.json();
+        console.log(data)
         setUserEmail(data.user.email)
+        console.log(document.cookie)
         data.success && router.push("/dashboard"); 
       } else {
         // Login Attempt 
@@ -49,11 +51,13 @@ const AuthPage = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email:email, password:password}),
+          credentials: 'include',
         })
 
-        const {data} = await res.json();
-        console.log(data.user.email)
+        const data = await res.json();
+        console.log(data)
         setUserEmail(data.user.email)
+        console.log(document.cookie)
         data.success && router.push("/dashboard"); 
       }
     } catch (err) {("/api/signup")
