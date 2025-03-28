@@ -57,7 +57,8 @@ CREATE TABLE notes (
 	id SERIAL PRIMARY KEY,
 	section_id INTEGER NOT NULL REFERENCES sections(id),
 	owner_id INTEGER NOT NULL REFERENCES users(id),
-	content TEXT NOT NULL
+	content bytea NOT NULL,
+	content_type TEXT NOT NULL
 )
 ```
 

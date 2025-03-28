@@ -8,7 +8,7 @@ from typing import Annotated
 import jwt
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Response, status, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
@@ -33,7 +33,7 @@ from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteR
     GetCommentsForNoteRequestData, GetCoursesRequestData, GetMyNotesRequestData, \
         GetNoteRequestData, GetNotesForCourseRequestData, GetNotesForSectionRequestData, \
             GetSectionsRequestData, LeaveCommentRequestData, RateNoteRequestData, \
-                SignUpRequestData, Token, TokenData, UploadNoteRequestData, User
+                SignUpRequestData, Token, TokenData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 
@@ -293,7 +293,7 @@ async def get_sections(request_data: GetSectionsRequestData):
 
 @app.post("/upload_note")
 async def upload_note(
-    current_user: Annotated[User, Depends(get_current_user)], request_data: UploadNoteRequestData
+    current_user: Annotated[User, Depends(get_current_user)], file: UploadFile, section_id: int
 ):
     """
     Attempts to upload a note for a particular section
@@ -301,8 +301,9 @@ async def upload_note(
     # We don't catch UserDoesNotExistException because that shouldn't happen: if an account for
     # the caller doesn't exist, authentication should fail.
     try:
+        content = await file.read(file.size)
         note_id = await store_note(
-            db_conn_pool, request_data.section_id, request_data.content, current_user.email
+            db_conn_pool, section_id, content, file.content_type, current_user.email
         )
         return JSONResponse(
             content = {

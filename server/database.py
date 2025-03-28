@@ -205,7 +205,7 @@ class SectionDoesNotExistException(BaseException):
     Raised when a user attempts to reference a section that does not exist
     """
 
-async def store_note(db_conn_pool, section_id, content, email):
+async def store_note(db_conn_pool, section_id, content, content_type, email):
     """
     Attempts to store a note.
     """
@@ -217,12 +217,12 @@ async def store_note(db_conn_pool, section_id, content, email):
                     WITH owner AS (
                         SELECT id FROM users WHERE email = %s
                     )
-                    INSERT INTO notes (section_id, owner_id, content)
-                    SELECT %s, owner.id, %s
+                    INSERT INTO notes (section_id, owner_id, content, content_type)
+                    SELECT %s, owner.id, %s, %s
                     FROM owner
                     RETURNING id
                     """,
-                    (email, section_id, content)
+                    (email, section_id, content, content_type)
                 )
                 # If the result is None, then the owner user doesn't exist.
                 # Otherwise, we have successfully created the new section.
