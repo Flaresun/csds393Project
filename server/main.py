@@ -1,6 +1,7 @@
 """
 Main file containing HTTP endpoint definitions
 """
+from base64 import b64encode
 from contextlib import asynccontextmanager
 import os
 from typing import Annotated
@@ -24,7 +25,7 @@ from database import CourseAlreadyExistsException, CourseDoesNotExistException, 
                 get_note as get_note_from_db, get_notes_for_course as get_notes_for_course_from_db,\
                     get_notes_for_section as get_notes_for_section_from_db, get_notes_for_user, \
                         get_section_ids_for_course, InvalidSemesterException, \
-                            leave_comment_on_note, NoteDoesNotExistException, \
+                            leave_comment_on_note, Note, NoteDoesNotExistException, \
                                 ParentCommentDoesNotExistException, SectionAlreadyExistsException, \
                                     SectionDoesNotExistException, set_or_update_note_rating, \
                                         store_note, UserAlreadyExistsException, \
@@ -201,6 +202,31 @@ async def create_section(
         }
     )
 
+def create_serializable_note(note: Note) -> dict:
+    """
+    Creates a serializable dict from a Note object as returned by database code, encoding content
+    bytes as a string using Base64 (if content is present)
+    """
+    serializable_note = {
+        "id": note.note_id,
+        "section_id": note.section_id,
+        "owner_id": note.owner_id,
+        "content_type": note.content_type
+    }
+    if note.content is not None:
+        serializable_note["content"] = b64encode(note.content).decode("ascii")
+    return serializable_note
+
+def create_serializable_notes(notes):
+    """
+    A wrapper around create_serializable_note that accepts lists of Note objects
+    """
+    serializable_notes = []
+    for note in notes:
+        serializable_note = create_serializable_note(note)
+        serializable_notes.append(serializable_note)
+    return serializable_notes
+
 @app.post("/get_notes_for_course")
 async def get_notes_for_course(request_data: GetNotesForCourseRequestData):
     """
@@ -210,16 +236,7 @@ async def get_notes_for_course(request_data: GetNotesForCourseRequestData):
         notes = await get_notes_for_course_from_db(
             db_conn_pool, request_data.department, request_data.course, not request_data.ids_only
         )
-        serializable_notes = []
-        for note in notes:
-            serializable_note = {
-                "id": note.note_id,
-                "section_id": note.section_id,
-                "owner_id": note.owner_id
-            }
-            if note.content is not None:
-                serializable_note["content"] = note.content
-            serializable_notes.append(serializable_note)
+        serializable_notes = create_serializable_notes(notes)
         return JSONResponse(
             content = {
                 "notes": serializable_notes
@@ -348,12 +365,7 @@ async def get_note(request_data: GetNoteRequestData):
         note = await get_note_from_db(
             db_conn_pool, request_data.note_id
         )
-        serializable_note = {
-            "id": note.note_id,
-            "section_id": note.section_id,
-            "owner_id": note.owner_id,
-            "content": note.content,
-        }
+        serializable_note = create_serializable_note(note)
         return JSONResponse(
             content = serializable_note
         )
@@ -372,16 +384,7 @@ async def get_notes_for_section(request_data: GetNotesForSectionRequestData):
         notes = await get_notes_for_section_from_db(
             db_conn_pool, request_data.section_id, not request_data.ids_only
         )
-        serializable_notes = []
-        for note in notes:
-            serializable_note = {
-                "id": note.note_id,
-                "section_id": note.section_id,
-                "owner_id": note.owner_id
-            }
-            if note.content is not None:
-                serializable_note["content"] = note.content
-            serializable_notes.append(serializable_note)
+        serializable_notes = create_serializable_notes(notes)
         return JSONResponse(
             content = {
                 "notes": serializable_notes
@@ -404,16 +407,7 @@ async def get_my_notes(
     notes = await get_notes_for_user(
         db_conn_pool, current_user.email, not request_data.ids_only
     )
-    serializable_notes = []
-    for note in notes:
-        serializable_note = {
-            "id": note.note_id,
-            "section_id": note.section_id,
-            "owner_id": note.owner_id
-        }
-        if note.content is not None:
-            serializable_note["content"] = note.content
-        serializable_notes.append(serializable_note)
+    serializable_notes = create_serializable_notes(notes)
     return JSONResponse(
         content = {
             "notes": serializable_notes

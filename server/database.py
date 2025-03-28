@@ -2,6 +2,8 @@
 Methods for interfacing with the database.
 """
 
+from typing import Optional
+
 from psycopg.errors import CheckViolation, ForeignKeyViolation, UniqueViolation
 
 from model import UserInDB
@@ -237,21 +239,51 @@ class Note:
     """
     Represents a note stored in the database
     """
-    def __init__(self, note_id: int, section_id: int, owner_id: int, content: str):
+    def __init__(
+        self,
+        note_id: int,
+        section_id: int,
+        owner_id: int,
+        content: Optional[bytes],
+        content_type: str
+    ):
         self.note_id = note_id
         self.section_id = section_id
         self.owner_id = owner_id
         self.content = content
+        self.content_type = content_type
+
+def get_notes_from_results(results, get_content):
+    """
+    Creates a list of Notes objects from the results of a database query
+    """
+    notes = []
+    for result in results:
+        if get_content:
+            content = result[4]
+        else:
+            content = None
+        notes.append(
+            Note(
+                note_id = result[0],
+                section_id = result[1],
+                owner_id = result[2],
+                content = content,
+                content_type = result[3]
+            )
+        )
+    return notes
 
 async def get_notes_for_course(db_conn_pool, department, course, get_content):
     """
     Attempts to get all notes for a particular course from all sections
     """
     if get_content:
-        note_selection_string = \
-            "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            " notes.content_type, notes.content FROM notes"
     else:
-        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            "notes.content_type FROM notes"
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -298,21 +330,7 @@ async def get_notes_for_course(db_conn_pool, department, course, get_content):
                 result = await cur.fetchone()
                 if result is None:
                     raise CourseDoesNotExistException()
-            notes = []
-            for result in results:
-                if get_content:
-                    content = result[3]
-                else:
-                    content = None
-                notes.append(
-                    Note(
-                        note_id = result[0],
-                        section_id = result[1],
-                        owner_id = result[2],
-                        content = content
-                    )
-                )
-            return notes
+            return get_notes_from_results(results, get_content)
 
 async def get_department_codes(db_conn_pool):
     """
@@ -498,7 +516,8 @@ async def get_note(db_conn_pool, note_id):
                 note_id = result[0],
                 section_id = result[1],
                 owner_id = result[2],
-                content = result[3]
+                content = result[3],
+                content_type = result[4],
             )
 
 async def get_notes_for_section(db_conn_pool, section_id, get_content):
@@ -506,10 +525,11 @@ async def get_notes_for_section(db_conn_pool, section_id, get_content):
     Attempts to get all notes for a particular section of a course
     """
     if get_content:
-        note_selection_string = \
-            "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            " notes.content_type, notes.content FROM notes"
     else:
-        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            "notes.content_type FROM notes"
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -533,31 +553,18 @@ async def get_notes_for_section(db_conn_pool, section_id, get_content):
                 result = await cur.fetchone()
                 if result is None:
                     raise SectionDoesNotExistException()
-            notes = []
-            for result in results:
-                if get_content:
-                    content = result[3]
-                else:
-                    content = None
-                notes.append(
-                    Note(
-                        note_id = result[0],
-                        section_id = result[1],
-                        owner_id = result[2],
-                        content = content
-                    )
-                )
-            return notes
+            return get_notes_from_results(results, get_content)
 
 async def get_notes_for_user(db_conn_pool, email, get_content):
     """
     Attempts to get all notes for a particular user
     """
     if get_content:
-        note_selection_string = \
-            "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            " notes.content_type, notes.content FROM notes"
     else:
-        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            "notes.content_type FROM notes"
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -571,21 +578,7 @@ async def get_notes_for_user(db_conn_pool, email, get_content):
                 (email,)
             )
             results = await cur.fetchall()
-            notes = []
-            for result in results:
-                if get_content:
-                    content = result[3]
-                else:
-                    content = None
-                notes.append(
-                    Note(
-                        note_id = result[0],
-                        section_id = result[1],
-                        owner_id = result[2],
-                        content = content
-                    )
-                )
-            return notes
+            return get_notes_from_results(results, get_content)
 
 async def set_or_update_note_rating(db_conn_pool, email, note_id, rating):
     """
