@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { X, Eye, Download, FileText, FileImage, FileAudio, File } from 'lucide-react';
 
 // Define TypeScript interfaces
 interface Classes {
@@ -20,8 +21,69 @@ interface FileItem {
   name: string;
   type: string;
   size: string;
+  url: string;
 }
 
+const FileViewModal: React.FC<{ 
+  file: FileItem | null, 
+  onClose: () => void 
+}> = ({ file, onClose }) => {
+  if (!file) return null;
+
+  const handleDownload = () => {
+    fetch(file.url)
+      .then(response => response.blob())
+      .then(blob => {
+        const link = document.createElement('a');
+        const url = window.URL.createObjectURL(blob);
+        
+        link.href = url;
+        link.download = `${file.name}.${file.type.split(' ')[0].toLowerCase()}`;
+        
+        document.body.appendChild(link);
+        link.click();
+      })
+      .catch(error => {
+        console.error('Download failed:', error);
+        alert('Download failed. Please try again.');
+      });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="bg-slate-800 rounded-lg p-6 w-96 relative">
+        <button 
+          onClick={onClose} 
+          className="absolute top-4 right-4 text-gray-300 hover:text-white"
+        >
+          ✕
+        </button>
+        
+        <div className="flex flex-col items-center">
+          <div className="text-6xl mb-4">{file.icon}</div>
+          <h2 className="text-xl font-semibold text-gray-200">{file.name}</h2>
+          <p className="text-gray-400">{file.type}</p>
+          <p className="text-gray-400 mt-2">{file.size}</p>
+        </div>
+
+        <div className="mt-6 flex justify-center space-x-4">
+          <button 
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+            onClick={() => window.open(file.url, '_blank')}
+          >
+            Preview
+          </button>
+          <button 
+            className="bg-green-600 text-white px-4 py-2 rounded"
+            onClick= {handleDownload}
+          >
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Main: React.FC = () => {
   // State for categories
@@ -42,11 +104,13 @@ const Main: React.FC = () => {
 
   // State for recent files
   const [recentFiles] = useState<FileItem[]>([
-    { icon: "📷", name: "IMG_100000", type: "PNG file", size: "5 MB" },
-    { icon: "📄", name: "SRS Document", type: "PDF file", size: "1.3 MB" },
-    { icon: "🔊", name: "Lecture 2", type: "MP3 file", size: "21 MB" },
-    { icon: "📄", name: "Design Document", type: "DOCx file", size: "1.2 MB" },
+    { icon: "📷", name: "IMG_100000", type: "PNG file", size: "5 MB", url:"https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/1966.png" },
+    { icon: "📄", name: "SRS Document", type: "PDF file", size: "1.3 MB", url:"" },
+    { icon: "🔊", name: "Lecture 2", type: "MP3 file", size: "21 MB", url:"" },
+    { icon: "📄", name: "Design Document", type: "DOCx file", size: "1.2 MB", url:"" },
   ]);
+
+  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
 
   return (
     <div className="flex bg-slate-900">
@@ -99,7 +163,11 @@ const Main: React.FC = () => {
           <h2 className="text-xl font-semibold mb-4 text-gray-300">Recent files</h2>
           <div className="space-y-2">
             {recentFiles.map((file, index) => (
-              <div key={index} className="bg-gray-500 p-4 rounded-lg shadow-sm flex items-center">
+              <div 
+              key={index} 
+              className="bg-gray-500 p-4 rounded-lg shadow-sm flex items-center cursor-pointer hover:bg-gray-600 transition"
+              onClick={() => setSelectedFile(file)}
+              >
                 <div className="w-10 h-10 flex items-center justify-center rounded-lg mr-4" style={{ backgroundColor: index === 0 ? '#7377F8' : index === 1 ? '#E75D8D' : index === 2 ? '#4D7CFE' : '#3DBBB3' }}>
                   <span className="text-white">{file.icon}</span>
                 </div>
@@ -115,7 +183,14 @@ const Main: React.FC = () => {
           </div>
         </div>
       </div>
-
+    
+    {/* File View Modal */}
+    {selectedFile && (
+        <FileViewModal 
+          file={selectedFile} 
+          onClose={() => setSelectedFile(null)} 
+        />
+      )}
       
     </div>
   );
