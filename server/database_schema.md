@@ -57,7 +57,8 @@ CREATE TABLE notes (
 	id SERIAL PRIMARY KEY,
 	section_id INTEGER NOT NULL REFERENCES sections(id),
 	owner_id INTEGER NOT NULL REFERENCES users(id),
-	content TEXT NOT NULL
+	content bytea NOT NULL,
+	content_type TEXT NOT NULL
 )
 ```
 
@@ -68,7 +69,8 @@ CREATE TABLE note_ratings (
 	note_id INTEGER NOT NULL REFERENCES notes(id),
 	rater INTEGER NOT NULL REFERENCES users(id),
 	rating INTEGER NOT NULL,
-	CHECK (rating >= 1 AND rating <= 10)
+	CHECK (rating >= 1 AND rating <= 10),
+	UNIQUE (note_id, rater)
 )
 ```
 

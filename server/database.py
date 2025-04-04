@@ -2,9 +2,11 @@
 Methods for interfacing with the database.
 """
 
+from typing import Optional
+
 from psycopg.errors import CheckViolation, ForeignKeyViolation, UniqueViolation
 
-from model import UserInDB
+from model import Section, UserInDB
 
 class UserAlreadyExistsException(Exception):
     """
@@ -202,10 +204,10 @@ class UserDoesNotExistException(BaseException):
 
 class SectionDoesNotExistException(BaseException):
     """
-    Raised when a user attempts to upload a note for a section that does not exist
+    Raised when a user attempts to reference a section that does not exist
     """
 
-async def store_note(db_conn_pool, section_id, content, email):
+async def store_note(db_conn_pool, section_id, content, content_type, email):
     """
     Attempts to store a note.
     """
@@ -217,12 +219,12 @@ async def store_note(db_conn_pool, section_id, content, email):
                     WITH owner AS (
                         SELECT id FROM users WHERE email = %s
                     )
-                    INSERT INTO notes (section_id, owner_id, content)
-                    SELECT %s, owner.id, %s
+                    INSERT INTO notes (section_id, owner_id, content, content_type)
+                    SELECT %s, owner.id, %s, %s
                     FROM owner
                     RETURNING id
                     """,
-                    (email, section_id, content)
+                    (email, section_id, content, content_type)
                 )
                 # If the result is None, then the owner user doesn't exist.
                 # Otherwise, we have successfully created the new section.
@@ -237,21 +239,51 @@ class Note:
     """
     Represents a note stored in the database
     """
-    def __init__(self, note_id: int, section_id: int, owner_id: int, content: str):
+    def __init__(
+        self,
+        note_id: int,
+        section_id: int,
+        owner_id: int,
+        content: Optional[bytes],
+        content_type: str
+    ):
         self.note_id = note_id
         self.section_id = section_id
         self.owner_id = owner_id
         self.content = content
+        self.content_type = content_type
+
+def get_notes_from_results(results, get_content):
+    """
+    Creates a list of Notes objects from the results of a database query
+    """
+    notes = []
+    for result in results:
+        if get_content:
+            content = result[4]
+        else:
+            content = None
+        notes.append(
+            Note(
+                note_id = result[0],
+                section_id = result[1],
+                owner_id = result[2],
+                content = content,
+                content_type = result[3]
+            )
+        )
+    return notes
 
 async def get_notes_for_course(db_conn_pool, department, course, get_content):
     """
     Attempts to get all notes for a particular course from all sections
     """
     if get_content:
-        note_selection_string = \
-            "SELECT notes.id, notes.section_id, notes.owner_id, notes.content FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            " notes.content_type, notes.content FROM notes"
     else:
-        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id FROM notes"
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            "notes.content_type FROM notes"
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -298,21 +330,7 @@ async def get_notes_for_course(db_conn_pool, department, course, get_content):
                 result = await cur.fetchone()
                 if result is None:
                     raise CourseDoesNotExistException()
-            notes = []
-            for result in results:
-                if get_content:
-                    content = result[3]
-                else:
-                    content = None
-                notes.append(
-                    Note(
-                        note_id = result[0],
-                        section_id = result[1],
-                        owner_id = result[2],
-                        content = content
-                    )
-                )
-            return notes
+            return get_notes_from_results(results, get_content)
 
 async def get_department_codes(db_conn_pool):
     """
@@ -366,9 +384,10 @@ async def get_courses_for_department(db_conn_pool, department_code):
                 course_codes.append(result[0])
             return course_codes
 
-async def get_section_ids_for_course(db_conn_pool, department_code, course_code):
+async def get_sections_for_course(db_conn_pool, department_code, course_code):
     """
-    Attempts to get the section IDs of all sections of a particular course
+    Attempts to get the section IDs, instructor usernames, years and semesters of all sections of a
+    particular course
     """
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
@@ -378,11 +397,13 @@ async def get_section_ids_for_course(db_conn_pool, department_code, course_code)
                     SELECT id FROM departments WHERE code = %s
                 ),
                 course AS (
-                    SELECT courses.id FROM courses, department
-                    WHERE department_id = department.id AND code = %s
+                    SELECT courses.id FROM courses
+	                LEFT JOIN department ON department_id = department.id
+	                WHERE code = %s
                 )
-                SELECT sections.id FROM sections, course
-                WHERE sections.course_id = course.id
+                SELECT sections.id, email, year, semester FROM sections
+                JOIN course ON sections.course_id = course.id
+                JOIN users ON sections.instructor = users.id
                 """,
                 (department_code.upper(), course_code.upper())
             )
@@ -413,7 +434,335 @@ async def get_section_ids_for_course(db_conn_pool, department_code, course_code)
                 result = await cur.fetchone()
                 if result is None:
                     raise CourseDoesNotExistException()
-            section_ids = []
+            sections = []
             for result in results:
-                section_ids.append(result[0])
-            return section_ids
+                section = Section(
+                    section_id = result[0],
+                    instructor = result[1],
+                    year = result[2],
+                    semester = result[3]
+                )
+                sections.append(section)
+            return sections
+
+class NoteDoesNotExistException(BaseException):
+    """
+    Raised when a user attempts to perform an action on a note that does not exist
+    """
+
+class UserIsNotOwnerOrFacultyException(BaseException):
+    """
+    Used when a user who does not have the faculty role attempts to delete a note they do not own
+    """
+
+async def delete_note(db_conn_pool, note_id, email):
+    """
+    Attempts to delete a note with the specified ID
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                WITH owner AS (
+                    SELECT id FROM users WHERE email = %s
+                )
+                DELETE FROM notes USING owner
+                WHERE notes.id = %s AND (
+                    owner_id = owner.id OR owner.id IN (
+                        SELECT id FROM users WHERE user_role = 'faculty'
+                    )
+                )
+                """,
+                (email, note_id)
+            )
+            num_rows_deleted = cur.rowcount
+            # If no rows were deleted, then either we attempted to delete a note that doesn't
+            # exist or we attempted to delete a node belonging to a user that is not the calling
+            # user and the calling user doesn't have the faculty role. We check that here
+            print(num_rows_deleted)
+            if num_rows_deleted == 0:
+                result = await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException()
+                note_owner_id = result[2]
+                # Next, we check if the user is not the owner and doesn't have the faculty role
+                result = await cur.execute(
+                    """
+                    SELECT id, user_role FROM users WHERE email = %s
+                    """,
+                    (email,)
+                )
+                result = await cur.fetchone()
+                caller_id, caller_role = result[0], result[1]
+                if note_owner_id != caller_id and caller_role != 'faculty':
+                    raise UserIsNotOwnerOrFacultyException()
+                # The note does exist and either the owner is the caller or the caller does have
+                # the faculty role, but for some reason the note wasn't deleted.
+                raise UnknownEmptyResultException()
+
+async def get_note(db_conn_pool, note_id):
+    """
+    Attempts to get the note with the specified id
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT * FROM notes WHERE notes.id = %s
+                """,
+                (note_id,)
+            )
+            result = await cur.fetchone()
+            if result is None:
+                raise NoteDoesNotExistException()
+            return Note(
+                note_id = result[0],
+                section_id = result[1],
+                owner_id = result[2],
+                content = result[3],
+                content_type = result[4],
+            )
+
+async def get_notes_for_section(db_conn_pool, section_id, get_content):
+    """
+    Attempts to get all notes for a particular section of a course
+    """
+    if get_content:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            " notes.content_type, notes.content FROM notes"
+    else:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            "notes.content_type FROM notes"
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                f"""
+                {note_selection_string}
+                WHERE notes.section_id = %s
+                """,
+                (section_id,)
+            )
+            results = await cur.fetchall()
+            # If we get no results from our query, then perhaps we did query with a valid section
+            # id, but no notes exist for that section. However, an empty result could indicate that
+            # we queried with a section id that does not exist. We check that here
+            if len(results) == 0:
+                await cur.execute(
+                    """
+                    SELECT * FROM sections WHERE id = %s
+                    """,
+                    (section_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise SectionDoesNotExistException()
+            return get_notes_from_results(results, get_content)
+
+async def get_notes_for_user(db_conn_pool, email, get_content):
+    """
+    Attempts to get all notes for a particular user
+    """
+    if get_content:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            " notes.content_type, notes.content FROM notes"
+    else:
+        note_selection_string = "SELECT notes.id, notes.section_id, notes.owner_id, " + \
+            "notes.content_type FROM notes"
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                f"""
+                WITH owner AS (
+                    SELECT id FROM users WHERE email = %s
+                )
+                {note_selection_string}, owner
+                WHERE notes.owner_id = owner.id
+                """,
+                (email,)
+            )
+            results = await cur.fetchall()
+            return get_notes_from_results(results, get_content)
+
+async def set_or_update_note_rating(db_conn_pool, email, note_id, rating):
+    """
+    Attempts to assign a rating from a particular user to a particular note, or update that user's
+    existing rating for that note, if such a rating exists.
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute(
+                    """
+                    WITH rater AS (
+                        SELECT id FROM users WHERE email = %s
+                    )
+                    INSERT INTO note_ratings (note_id, rater, rating)
+                    SELECT %s, rater.id, %s
+                    FROM rater
+                    ON CONFLICT (note_id, rater)
+                    DO UPDATE SET rating = %s
+                    """,
+                    (email, note_id, rating, rating)
+                )
+            except ForeignKeyViolation as exc:
+                # Check if the note with the specified ID exists
+                # Rollback the previous failed transaction so we can run another
+                await conn.rollback()
+                await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException() from exc
+                # Technically, we could also get a foreign key violation if the user doesn't exist
+                # in the database. However in that case, an API call should fail at the
+                # authentication step, so we don't handle this case here and just raise an unknown
+                # exception instead.
+                raise UnknownEmptyResultException() from exc
+
+class ParentCommentDoesNotExistException(BaseException):
+    """
+    Raised when a user attempts to reply to a comment that does not exist
+    """
+
+async def leave_comment_on_note(db_conn_pool, email, note_id, parent_com_id, content):
+    """
+    Attempts to leave a comment from a particular user on a particular note, possibly in reply to
+    an existing comment.
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                if parent_com_id is None:
+                    await cur.execute(
+                        """
+                        WITH commenter AS (
+                            SELECT id FROM users WHERE email = %s
+                        )
+                        INSERT INTO comments (note_id, parent_comment_id, commenter_id, content)
+                        SELECT %s, NULL, commenter.id, %s
+                        FROM commenter
+                        RETURNING id
+                        """,
+                        (email, note_id, content)
+                    )
+                    result = await cur.fetchone()
+                    return result[0]
+                # We have a parent comment ID, so leave the comment as a reply
+                await cur.execute(
+                    """
+                    WITH parent_comment_note AS (
+                        SELECT note_id FROM comments WHERE id = %s
+                    ),
+                    commenter AS (
+                        SELECT id FROM users WHERE email = %s
+                    )
+                    INSERT INTO comments (note_id, parent_comment_id, commenter_id, content)
+                    SELECT parent_comment_note.note_id, %s, commenter.id, %s
+                    FROM parent_comment_note, commenter
+                    RETURNING id
+                    """,
+                    (parent_com_id, email, parent_com_id, content)
+                )
+                result = await cur.fetchone()
+                # If the parent comment with the specified ID doesn't exist, the result will be
+                # None. Otherwise, return the id of the new comment
+                if result is not None:
+                    return result[0]
+                # The result is None, so we check if the parent comment with the specified ID
+                # actually exists and raise the appropriate exception
+                await cur.execute(
+                    """
+                    SELECT * FROM comments WHERE id = %s
+                    """,
+                    (parent_com_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise ParentCommentDoesNotExistException()
+                # The comment does exist, so something else must have gone wrong
+                raise UnknownEmptyResultException()
+            except ForeignKeyViolation as exc:
+                # Rollback the previous failed transaction so we can run another
+                await conn.rollback()
+                # We could get this exception if we try to leave a comment on a note that doesn't
+                # exist or if the user attempting to leave the comment doesn't exist. However in
+                # that latter case, the API call should fail at the authentication step so we just
+                # raise an unknown exception instead.
+                await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException() from exc
+                # The note does exist, so something unknown must have gone wrong
+                raise UnknownEmptyResultException() from exc
+
+class Comment:
+    """
+    Represents a comment stored in the database
+    """
+    def __init__(
+        self,
+        comment_id: int,
+        note_id: int,
+        parent_comment_id: int,
+        commenter_id: int,
+        content: str
+    ):
+        self.comment_id = comment_id
+        self.note_id = note_id
+        self.parent_comment_id = parent_comment_id
+        self.commenter_id = commenter_id
+        self.content = content
+
+async def get_comments_for_note(db_conn_pool, note_id):
+    """
+    Attempts to get all comments for a particular note
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT * FROM comments WHERE note_id = %s
+                """,
+                (note_id,)
+            )
+            results = await cur.fetchall()
+            # If we get no results from our query, then perhaps we did query with a valid note id
+            # but no comments exist for that note. However, an empty result could indicate that a
+            # note with the specified id does not exist. We check that here
+            if len(results) == 0:
+                await cur.execute(
+                    """
+                    SELECT * FROM notes WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException()
+            comments = []
+            for result in results:
+                comments.append(
+                    Comment(
+                        comment_id = result[0],
+                        note_id = result[1],
+                        parent_comment_id = result[2],
+                        commenter_id = result[3],
+                        content = result[4]
+                    )
+                )
+            return comments

@@ -2,6 +2,8 @@
 Contains data models for HTTP requests and responses
 """
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 class Token(BaseModel):
@@ -57,13 +59,6 @@ class CreateSectionRequestData(BaseModel):
     year: int
     semester: str
 
-class UploadNoteRequestData(BaseModel):
-    """
-    Represents data contained in a /upload_note request
-    """
-    section_id: int
-    content: str
-
 class GetNotesForCourseRequestData(BaseModel):
     """
     Represents data contained in a /get_notes_for_course request
@@ -84,3 +79,58 @@ class GetSectionsRequestData(BaseModel):
     """
     department: str
     course: str
+
+class DeleteNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /delete_note request
+    """
+    note_id: int
+
+class GetNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /get_note request
+    """
+    note_id: int
+
+class GetNotesForSectionRequestData(BaseModel):
+    """
+    Represents data contained in a /get_notes_for_section request
+    """
+    section_id: int
+    ids_only: bool
+
+class GetMyNotesRequestData(BaseModel):
+    """
+    Represents data contained in a /get_my_notes request
+    """
+    ids_only: bool
+
+class RateNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /rate_note request
+    """
+    note_id: int
+    rating: int
+
+class LeaveCommentRequestData(BaseModel):
+    """
+    Represents data contained in a /leave_comment request
+    """
+    note_id: int
+    parent_com_id: Optional[int]
+    content: str
+
+class GetCommentsForNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /get_comments_for_note request
+    """
+    note_id: int
+
+class Section(BaseModel):
+    """
+    Represents the data retrieved from the sections table for a /get_sections request
+    """
+    section_id: int
+    instructor: str
+    year: int
+    semester: str
