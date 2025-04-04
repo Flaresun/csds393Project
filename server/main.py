@@ -14,7 +14,6 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from psycopg_pool import AsyncConnectionPool
-from prisma import Prisma
 
 from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
@@ -52,7 +51,6 @@ async def lifespan(app: FastAPI):
     await db_conn_pool.close()
 
 app = FastAPI(lifespan=lifespan)
-db = Prisma(auto_register=True)
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     """
