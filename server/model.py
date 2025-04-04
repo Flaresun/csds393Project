@@ -125,3 +125,12 @@ class GetCommentsForNoteRequestData(BaseModel):
     Represents data contained in a /get_comments_for_note request
     """
     note_id: int
+
+class Section(BaseModel):
+    """
+    Represents the data retrieved from the sections table for a /get_sections request
+    """
+    section_id: int
+    instructor: str
+    year: int
+    semester: str
