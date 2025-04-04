@@ -6,7 +6,7 @@ from typing import Optional
 
 from psycopg.errors import CheckViolation, ForeignKeyViolation, UniqueViolation
 
-from model import UserInDB
+from model import Section, UserInDB
 
 class UserAlreadyExistsException(Exception):
     """
@@ -384,9 +384,10 @@ async def get_courses_for_department(db_conn_pool, department_code):
                 course_codes.append(result[0])
             return course_codes
 
-async def get_section_ids_for_course(db_conn_pool, department_code, course_code):
+async def get_sections_for_course(db_conn_pool, department_code, course_code):
     """
-    Attempts to get the section IDs of all sections of a particular course
+    Attempts to get the section IDs, instructor usernames, years and semesters of all sections of a
+    particular course
     """
     async with db_conn_pool.connection() as conn:
         async with conn.cursor() as cur:
@@ -396,11 +397,13 @@ async def get_section_ids_for_course(db_conn_pool, department_code, course_code)
                     SELECT id FROM departments WHERE code = %s
                 ),
                 course AS (
-                    SELECT courses.id FROM courses, department
-                    WHERE department_id = department.id AND code = %s
+                    SELECT courses.id FROM courses
+	                LEFT JOIN department ON department_id = department.id
+	                WHERE code = %s
                 )
-                SELECT sections.id FROM sections, course
-                WHERE sections.course_id = course.id
+                SELECT sections.id, email, year, semester FROM sections
+                JOIN course ON sections.course_id = course.id
+                JOIN users ON sections.instructor = users.id
                 """,
                 (department_code.upper(), course_code.upper())
             )
@@ -431,10 +434,16 @@ async def get_section_ids_for_course(db_conn_pool, department_code, course_code)
                 result = await cur.fetchone()
                 if result is None:
                     raise CourseDoesNotExistException()
-            section_ids = []
+            sections = []
             for result in results:
-                section_ids.append(result[0])
-            return section_ids
+                section = Section(
+                    section_id = result[0],
+                    instructor = result[1],
+                    year = result[2],
+                    semester = result[3]
+                )
+                sections.append(section)
+            return sections
 
 class NoteDoesNotExistException(BaseException):
     """
