@@ -2,6 +2,8 @@
 Contains data models for HTTP requests and responses
 """
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 class Token(BaseModel):
@@ -38,3 +40,88 @@ class SignUpRequestData(BaseModel):
     email: str
     password: str
     role: str
+
+class CreateCourseRequestData(BaseModel):
+    """
+    Represents the data contained in a /create_course request
+    """
+    department: str
+    code: str
+    name: str
+
+class CreateSectionRequestData(BaseModel):
+    """
+    Represents the data contained in a /create_section request
+    """
+    department: str
+    course: str
+    instructor: str
+    year: int
+    semester: str
+
+class GetNotesForCourseRequestData(BaseModel):
+    """
+    Represents data contained in a /get_notes_for_course request
+    """
+    department: str
+    course: str
+    ids_only: bool
+
+class GetCoursesRequestData(BaseModel):
+    """
+    Represents data contained in a /get_courses request
+    """
+    department: str
+
+class GetSectionsRequestData(BaseModel):
+    """
+    Represents data contained in a /get_sections request
+    """
+    department: str
+    course: str
+
+class DeleteNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /delete_note request
+    """
+    note_id: int
+
+class GetNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /get_note request
+    """
+    note_id: int
+
+class GetNotesForSectionRequestData(BaseModel):
+    """
+    Represents data contained in a /get_notes_for_section request
+    """
+    section_id: int
+    ids_only: bool
+
+class GetMyNotesRequestData(BaseModel):
+    """
+    Represents data contained in a /get_my_notes request
+    """
+    ids_only: bool
+
+class RateNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /rate_note request
+    """
+    note_id: int
+    rating: int
+
+class LeaveCommentRequestData(BaseModel):
+    """
+    Represents data contained in a /leave_comment request
+    """
+    note_id: int
+    parent_com_id: Optional[int]
+    content: str
+
+class GetCommentsForNoteRequestData(BaseModel):
+    """
+    Represents data contained in a /get_comments_for_note request
+    """
+    note_id: int

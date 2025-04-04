@@ -33,7 +33,8 @@ CREATE TABLE courses (
 	id SERIAL PRIMARY KEY,
 	department_id INTEGER NOT NULL REFERENCES departments(id),
 	code TEXT UNIQUE NOT NULL,
-	name TEXT UNIQUE NOT NULL
+	name TEXT UNIQUE NOT NULL,
+	UNIQUE (department_id, code)
 )
 ```
 
@@ -45,7 +46,8 @@ CREATE TABLE sections (
 	instructor INTEGER REFERENCES users(id),
 	year INTEGER NOT NULL,
 	semester TEXT NOT NULL,
-	CHECK (semester in ('spring', 'summer', 'fall'))
+	CHECK (semester in ('spring', 'summer', 'fall')),
+	UNIQUE (course_id, instructor, year, semester)
 )
 ```
 
@@ -55,7 +57,8 @@ CREATE TABLE notes (
 	id SERIAL PRIMARY KEY,
 	section_id INTEGER NOT NULL REFERENCES sections(id),
 	owner_id INTEGER NOT NULL REFERENCES users(id),
-	content TEXT NOT NULL
+	content bytea NOT NULL,
+	content_type TEXT NOT NULL
 )
 ```
 
@@ -66,16 +69,17 @@ CREATE TABLE note_ratings (
 	note_id INTEGER NOT NULL REFERENCES notes(id),
 	rater INTEGER NOT NULL REFERENCES users(id),
 	rating INTEGER NOT NULL,
-	CHECK (rating >= 1 AND rating <= 10)
+	CHECK (rating >= 1 AND rating <= 10),
+	UNIQUE (note_id, rater)
 )
 ```
 
 ## Comments Table
 ```
-CREATE TABLE root_comments (
+CREATE TABLE comments (
 	id SERIAL PRIMARY KEY,
 	note_id INTEGER NOT NULL REFERENCES notes(id),
-	parent_comment_id INTEGER REFERENCES root_comments(id),
+	parent_comment_id INTEGER REFERENCES comments(id),
 	commenter_id INTEGER NOT NULL REFERENCES users(id),
 	content TEXT NOT NULL
 )
