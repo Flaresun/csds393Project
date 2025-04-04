@@ -10,7 +10,11 @@ type ResponseData = {
 export async function POST(req : Request) {
     const {email, password, role} = await req.json();
     
+<<<<<<< HEAD
     return await fetch(process.env.BACKEND_URL + "/sign_up",{
+=======
+    return await fetch(process.env.BACKEND_URL + "/signup",{
+>>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
         method : "POST",
         body: JSON.stringify({ email:email, password:password, role:role }),
         headers: {
