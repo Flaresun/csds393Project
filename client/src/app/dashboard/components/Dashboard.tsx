@@ -14,8 +14,7 @@ const Dashboard = () => {
         {/**Split 3 way. Navbar on top with search, notifications, profile, extras */}
         <Navbar />
 
-        {/**Split 3 way. Leftbar with navigation tools. Like go upload a file, Go browse files. Saved files, home, settings, contact */}
-        <div className="flex">
+        <div className="flex overflow-y-auto">
           <LeftPanel panel={panel}/>
           <Main />
         </div>

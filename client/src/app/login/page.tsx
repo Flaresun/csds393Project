@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { LuEyeClosed } from "react-icons/lu";
 import { RxEyeOpen } from "react-icons/rx";
 import "../../components/Hero.css"; // Assuming this file exists for custom styles
 import { useRouter } from 'next/navigation'
+import { AppContent } from "@/context/AppContext";
 
 const AuthPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -11,6 +12,7 @@ const AuthPage = () => {
   const [role, setRole] = useState<string>("Student"); // State for the role dropdown
   const [email, setEmail] = useState<string>(""); // State for the role dropdown
   const [password, setPassword] = useState<string>(""); // State for the role dropdown
+  const {setUserEmail} = useContext(AppContent)
   const router = useRouter();
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -32,11 +34,14 @@ const AuthPage = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email:email, password:password, role:role }),
+          body: JSON.stringify({ email:email, password:password, role:role.toLowerCase() }),
+          credentials: 'include',
         })
 
-        const {data} = await res.json();
+        const data = await res.json();
         console.log(data)
+        setUserEmail(data.user.email)
+        console.log(document.cookie)
         data.success && router.push("/dashboard"); 
       } else {
         // Login Attempt 
@@ -46,10 +51,13 @@ const AuthPage = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email:email, password:password}),
+          credentials: 'include',
         })
 
-        const {data} = await res.json();
+        const data = await res.json();
         console.log(data)
+        setUserEmail(data.user.email)
+        console.log(document.cookie)
         data.success && router.push("/dashboard"); 
       }
     } catch (err) {("/api/signup")
@@ -109,8 +117,7 @@ const AuthPage = () => {
                 required
               >
                 <option value="Student">Student</option>
-                <option value="Teacher">Teacher</option>
-                <option value="Admin">Admin</option>
+                <option value="Faculty">Faculty</option>
               </select>
             </div>
           )}
@@ -154,4 +161,3 @@ const AuthPage = () => {
 };
 
 export default AuthPage;
-

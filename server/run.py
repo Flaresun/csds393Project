@@ -1,5 +1,4 @@
 import uvicorn
-import prisma
 import subprocess
 
 if __name__ == "__main__":

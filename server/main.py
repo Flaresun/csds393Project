@@ -7,9 +7,12 @@ import os
 from typing import Annotated
 
 import jwt
+import re
+
+
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Response, status, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, Response, status, UploadFile,Request,Form
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
@@ -36,7 +39,7 @@ from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteR
                 SignUpRequestData, Token, TokenData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
-
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 db_conn_pool = AsyncConnectionPool(os.getenv("DATABASE_URL"), open=False)
@@ -74,12 +77,20 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         raise credentials_exception
     return user
 
+@app.post("/validate_user")
+async def validate(request: Request):
+    token = request.headers.get("Authorization")
+
+    data = await get_current_user(token[7:])
+    res = JSONResponse(content={"success":True, "message":"Login Successful", "user":data.email},status_code=200,headers={"X-Error": "Custom Error"})
+    return res
+
 @app.post("/token")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
     """
-    Attempts to get an access token given a username and password
+    Attempts to get an access token given a username and password   
     """
     user = await authenticate_user(
         db_conn_pool, form_data.username, form_data.password)
@@ -89,7 +100,20 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return create_access_token_from_email(user.email)
+    
+
+
+    res = JSONResponse(content={"success":True, "message":"Login Successful", "user":{"email":form_data.username}},status_code=200,headers={"X-Error": "Custom Error"})
+    res.set_cookie(
+            key="token", value=create_access_token_from_email(form_data.username).access_token, httponly=False, max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60, path="/", secure=False
+        )
+    return res
+
+@app.post("/logout")
+async def logout():
+    response = JSONResponse(content={"message": "Logged out"})
+    response.delete_cookie("token")
+    return response
 
 @app.post("/sign_up")
 async def sign_up(request_data: SignUpRequestData) -> Token:
@@ -118,7 +142,12 @@ async def sign_up(request_data: SignUpRequestData) -> Token:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="email already in use"
         ) from exc
-    return create_access_token_from_email(email)
+    
+    res = JSONResponse(content={"success":True, "message":"Login Successful", "user":{"email":email}},status_code=200,headers={"X-Error": "Custom Error"})
+    res.set_cookie(
+            key="token", value=create_access_token_from_email(email).access_token, httponly=False, max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60, path="/", secure=False
+        )
+    return res
 
 @app.post("/create_course")
 async def create_course(
@@ -318,7 +347,7 @@ async def get_sections(request_data: GetSectionsRequestData):
 
 @app.post("/upload_note")
 async def upload_note(
-    current_user: Annotated[User, Depends(get_current_user)], file: UploadFile, section_id: int
+    current_user: Annotated[User, Depends(get_current_user)], file: UploadFile, section_id: int = Form(...),
 ):
     """
     Attempts to upload a note for a particular section
@@ -455,6 +484,8 @@ async def leave_comment(
     Attempts to leave a comment from a particular user on a particular note, possibly in reply to
     an existing comment on that note
     """
+    print("Received request data:", request_data)  # Debug: print incoming request data
+
     try:
         new_note_id = await leave_comment_on_note(
             db_conn_pool,

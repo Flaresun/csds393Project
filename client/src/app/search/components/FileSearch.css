@@ -1,0 +1,108 @@
+.title {
+    background: #4B2C83;
+    color: #6B7280;
+    width: 100%;
+    padding: 40px 0px;
+    text-align: center;
+  }
+  .title h1 {
+    padding: 0px;
+    margin: 0px;
+    font-size: 24px;
+    font-style: bold;
+    font-size: 2.5rem;
+
+    color: #6B7280;
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: inline-block;
+  }
+  
+  .input__wrapper {
+    margin: 20px;
+    text-align: center;
+  }
+  .input__wrapper input {
+    border: 3px solid #4B2C83;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 18px;
+  }
+
+  .input__wrapper button {
+    background-color: #4B2C83;
+    color: white;
+    padding: 8px 15px;
+    font-size: 18px;
+    border: none;
+    border: 3px solid #4B2C83;
+    border-radius: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  
+  .body__item {
+    background-color: #6B7280;
+    text-align: left;
+    border: 1px solid #6B7280;
+    padding: 20px;
+    width: 50%;
+    margin: 20px auto;
+  }
+  
+  .notFound {
+    width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #6B7280;
+    text-align: center;
+  }
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Slightly transparent black background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;  /* Ensure it's on top of other elements */
+  overflow: hidden; /* Prevent scrolling */
+}
+
+.modal-content {
+  position: relative;
+  background-color: white;
+  width: 90%;   /* 90% of the screen width */
+  height: 90%;  /* 90% of the screen height */
+  max-width: 100%; /* Ensure it doesn't exceed 100% width */
+  max-height: 100%; /* Ensure it doesn't exceed 100% height */
+  overflow: hidden;
+}
+
+button.close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 15px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 50%;
+}
+
+button.close:hover {
+  background-color: darkred;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none; /* Remove border around iframe */
+}

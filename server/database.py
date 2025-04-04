@@ -381,6 +381,7 @@ async def get_courses_for_department(db_conn_pool, department_code):
                     raise DepartmentDoesNotExistException()
             course_codes = []
             for result in results:
+                print(result)
                 course_codes.append(result[0])
             return course_codes
 
