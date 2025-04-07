@@ -7,9 +7,6 @@ import os
 from typing import Annotated
 
 import jwt
-import re
-
-
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Response, status, UploadFile,Request,Form
@@ -33,9 +30,9 @@ from database import CourseAlreadyExistsException, CourseDoesNotExistException, 
     UserAlreadyExistsException, UserIsNotOwnerOrFacultyException
 from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
     GetAverageNoteRatingRequestData, GetCommentsForNoteRequestData, GetCoursesRequestData, \
-        GetMyNotesRequestData, GetNoteRequestData, GetNotesForCourseRequestData, \
-            GetNotesForSectionRequestData, GetSectionsRequestData, LeaveCommentRequestData, \
-                RateNoteRequestData, SignUpRequestData, Token, TokenData, User
+    GetMyNotesRequestData, GetNoteRequestData, GetNotesForDepartmentAndCourseStringRequestData, \
+    GetNotesForCourseRequestData, GetNotesForSectionRequestData, GetSectionsRequestData, \
+    LeaveCommentRequestData, RateNoteRequestData, SignUpRequestData, Token, TokenData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -253,14 +250,14 @@ def create_serializable_notes(notes):
         serializable_notes.append(serializable_note)
     return serializable_notes
 
-@app.post("/get_notes_for_course")
-async def get_notes_for_course(request_data: GetNotesForCourseRequestData):
+async def get_serializable_notes_for_department_and_course_strings(department, course, ids_only):
     """
-    Attempts to get notes for all sections of a particular course
+    Used by get_notes_for_course and get_notes_for_department_and_course_string to call
+    get_notes_for_course_from_db, serialize results and handle errors to avoid redundancy
     """
     try:
         notes = await get_notes_for_course_from_db(
-            db_conn_pool, request_data.department, request_data.course, not request_data.ids_only
+            db_conn_pool, department, course, not ids_only
         )
         serializable_notes = create_serializable_notes(notes)
         return JSONResponse(
@@ -278,6 +275,48 @@ async def get_notes_for_course(request_data: GetNotesForCourseRequestData):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="course does not exist"
         ) from exc
+
+@app.post("/get_notes_for_course")
+async def get_notes_for_course(request_data: GetNotesForCourseRequestData):
+    """
+    Attempts to get notes for all sections of a particular course
+    """
+    return await get_serializable_notes_for_department_and_course_strings(
+        request_data.department, request_data.course, request_data.ids_only
+    )
+
+@app.post("/get_notes_for_department_and_course_string")
+async def get_notes_for_department_and_course_string(
+    request_data: GetNotesForDepartmentAndCourseStringRequestData
+):
+    """
+    Attempts to parse a given string as a department code (optionally followed by a space)
+    followed by a course code, and then performs the same functionality as get_notes_for_course
+    using the results
+    """
+    department_and_course_string_split = request_data.department_and_course.strip().split()
+    if len(department_and_course_string_split) == 2:
+        department = department_and_course_string_split[0]
+        course = department_and_course_string_split[1]
+    elif len(department_and_course_string_split) == 1:
+        department_and_course = department_and_course_string_split[0]
+        if len(department_and_course) > 4:
+            department = department_and_course[:4]
+            course = department_and_course[4:]
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="department_and_course formatted incorrectly"
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="department_and_course formatted incorrectly"
+        )
+    return await get_serializable_notes_for_department_and_course_strings(
+        department, course, request_data.ids_only
+    )
+
 
 @app.get("/get_departments")
 async def get_departments():
