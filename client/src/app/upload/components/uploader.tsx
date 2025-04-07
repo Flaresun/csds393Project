@@ -7,12 +7,7 @@ const page = () => {
     
     const [file, setFile] = useState<File | null>(null);
     const [message, setMessage] = useState("");
-<<<<<<< HEAD
     const [sectionId, setSectionId] = useState("");
-=======
-    const [className, setClassName] = useState("");
-    const {userEmail} = useContext(AppContent)
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
@@ -22,11 +17,7 @@ const page = () => {
     
     const token = document.cookie
         .split("; ")
-<<<<<<< HEAD
         .find(row => row.startsWith("token="))?.split("=")[1];
-=======
-        .find(row => row.startsWith("access_token="))?.split("=")[1];
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
 
     if (!token) {
         console.error("No token found");
@@ -40,15 +31,9 @@ const page = () => {
         
         const formData = new FormData();
         formData.append("file", file);
-<<<<<<< HEAD
         formData.append("sectionId", sectionId);
         formData.append("token",token)
 
-=======
-        formData.append("className", className);
-        formData.append("email",userEmail)
-        console.log(userEmail)
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
         try {
             const {data} = await axios.post("api/upload",formData, {
                 headers: { "Content-Type": "multipart/form-data",Authorization: `Bearer ${token}`,},
@@ -66,15 +51,9 @@ const page = () => {
             <div className="flex flex-col items-center justify-center p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
                 <input 
                     type="text" 
-<<<<<<< HEAD
                     placeholder="Enter Section Id" 
                     value={sectionId} 
                     onChange={(e) => setSectionId(e.target.value)} 
-=======
-                    placeholder="Enter class name" 
-                    value={className} 
-                    onChange={(e) => setClassName(e.target.value)} 
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
                     className="p-2 border rounded w-full text-slate-900"
                 />
                 <input type="file" accept=".pdf,.docx" onChange={handleFileChange} />
@@ -90,8 +69,4 @@ const page = () => {
         </div>
     );
 };  
-<<<<<<< HEAD
 export default page
-=======
-export default page
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8

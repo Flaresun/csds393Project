@@ -6,18 +6,11 @@ import { headers } from 'next/headers'
 
 export async function POST(req : Request) {
     const {className,token} = await req.json();
-<<<<<<< HEAD
     const allData = []
 
     const res =  await fetch(process.env.BACKEND_URL + "/get_courses",{
         method : "POST",
         body: JSON.stringify({ department:className}),
-=======
-
-    return await fetch(process.env.BACKEND_URL + "/get_class",{
-        method : "POST",
-        body: JSON.stringify({ class_name:className}),
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
@@ -25,7 +18,6 @@ export async function POST(req : Request) {
         credentials: "include"
     }); 
 
-<<<<<<< HEAD
     const data = await res.json()
     console.log(data.courses)
     // For each course, get the department name and course name. 
@@ -89,7 +81,5 @@ export async function POST(req : Request) {
 
     //return res
     return Response.json({allData})
-=======
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
 
 }

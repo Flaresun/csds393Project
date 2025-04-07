@@ -34,11 +34,7 @@ const AuthPage = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-<<<<<<< HEAD
           body: JSON.stringify({ email:email, password:password, role:role.toLowerCase() }),
-=======
-          body: JSON.stringify({ email:email, password:password, role:role }),
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
           credentials: 'include',
         })
 

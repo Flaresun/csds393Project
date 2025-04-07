@@ -124,8 +124,4 @@ const Main: React.FC = () => {
   );
 };
 
-<<<<<<< HEAD
 export default Main;
-=======
-export default Main;
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
