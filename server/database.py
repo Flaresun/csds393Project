@@ -630,6 +630,40 @@ async def set_or_update_note_rating(db_conn_pool, email, note_id, rating):
                 # exception instead.
                 raise UnknownEmptyResultException() from exc
 
+async def get_average_note_rating(db_conn_pool, note_id):
+    """
+    Attempts compute the average rating for a note with the specified ID, or returns None of the
+    note with the specified ID does exist but hasn't been rated.
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT avg(rating) FROM note_ratings
+                WHERE note_id = %s
+                """,
+                (note_id,)
+            )
+            results = await cur.fetchall()
+            # If we get no results from our query, then perhaps we did query with a valid note id,
+            # but no ratings exist for that note. However, an empty result could indicate that we
+            # queried with a note id that does not exist. We check that here
+            if results[0][0] is None:
+                await cur.execute(
+                    """
+                    SELECT * FROM notes
+                    WHERE id = %s
+                    """,
+                    (note_id,)
+                )
+                result = await cur.fetchone()
+                if result is None:
+                    raise NoteDoesNotExistException()
+                # We did find a note with the specified ID, so we must have gotten an empty result
+                # originally simply because the note has no ratings. Thus we return None
+                return None
+            return results[0][0]
+
 class ParentCommentDoesNotExistException(BaseException):
     """
     Raised when a user attempts to reply to a comment that does not exist

@@ -112,6 +112,12 @@ class RateNoteRequestData(BaseModel):
     note_id: int
     rating: int
 
+class GetAverageNoteRatingRequestData(BaseModel):
+    """
+    Represents data contained in a /get_average_note_rating request
+    """
+    note_id: int
+
 class LeaveCommentRequestData(BaseModel):
     """
     Represents data contained in a /leave_comment request

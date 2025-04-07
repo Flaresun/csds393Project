@@ -22,21 +22,20 @@ from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
     create_new_section, create_new_user, delete_note as delete_note_from_db, \
-        DepartmentDoesNotExistException, FacultyDoesNotExistException, get_comments_for_note as \
-            get_comments_for_note_from_db, get_courses_for_department, get_department_codes, \
-                get_note as get_note_from_db, get_notes_for_course as get_notes_for_course_from_db,\
-                    get_notes_for_section as get_notes_for_section_from_db, get_notes_for_user, \
-                        get_sections_for_course, InvalidSemesterException, \
-                            leave_comment_on_note, Note, NoteDoesNotExistException, \
-                                ParentCommentDoesNotExistException, SectionAlreadyExistsException, \
-                                    SectionDoesNotExistException, set_or_update_note_rating, \
-                                        store_note, UserAlreadyExistsException, \
-                                            UserIsNotOwnerOrFacultyException
+    DepartmentDoesNotExistException, FacultyDoesNotExistException, get_average_note_rating as \
+    get_average_note_rating_from_db, get_comments_for_note as get_comments_for_note_from_db, \
+    get_courses_for_department, get_department_codes, get_note as get_note_from_db, \
+    get_notes_for_course as get_notes_for_course_from_db, get_notes_for_section as \
+    get_notes_for_section_from_db, get_notes_for_user, get_sections_for_course, \
+    InvalidSemesterException, leave_comment_on_note, Note, NoteDoesNotExistException, \
+    ParentCommentDoesNotExistException, SectionAlreadyExistsException, \
+    SectionDoesNotExistException, set_or_update_note_rating, store_note, \
+    UserAlreadyExistsException, UserIsNotOwnerOrFacultyException
 from model import CreateCourseRequestData, CreateSectionRequestData, DeleteNoteRequestData, \
-    GetCommentsForNoteRequestData, GetCoursesRequestData, GetMyNotesRequestData, \
-        GetNoteRequestData, GetNotesForCourseRequestData, GetNotesForSectionRequestData, \
-            GetSectionsRequestData, LeaveCommentRequestData, RateNoteRequestData, \
-                SignUpRequestData, Token, TokenData, User
+    GetAverageNoteRatingRequestData, GetCommentsForNoteRequestData, GetCoursesRequestData, \
+        GetMyNotesRequestData, GetNoteRequestData, GetNotesForCourseRequestData, \
+            GetNotesForSectionRequestData, GetSectionsRequestData, LeaveCommentRequestData, \
+                RateNoteRequestData, SignUpRequestData, Token, TokenData, User
 
 # Run with comamand "uvicorn main:app --reload" or "fastapi dev main.py"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -468,6 +467,29 @@ async def rate_note(
             )
         await set_or_update_note_rating(
             db_conn_pool, current_user.email, request_data.note_id, request_data.rating
+        )
+    except NoteDoesNotExistException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="note does not exist"
+        ) from exc
+
+@app.post("/get_average_note_rating")
+async def get_average_note_rating(
+    request_data: GetAverageNoteRatingRequestData
+):
+    """
+    Attempts to fetch the average rating of the note with the specified ID, or null if no such
+    ratings exist.
+    """
+    try:
+        average_rating = await get_average_note_rating_from_db(
+            db_conn_pool, request_data.note_id
+        )
+        return JSONResponse(
+            content = {
+                "average_rating": average_rating
+            }
         )
     except NoteDoesNotExistException as exc:
         raise HTTPException(
