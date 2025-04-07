@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import './FileSearch.css';
 
 interface File {
-<<<<<<< HEAD
   id: number;
   name: string;
   instructor: string;
@@ -42,25 +41,6 @@ const FileSearch: React.FC = () => {
   const getFiles = async (className: string | null, token: string) => {
     if (!className) return;
 
-=======
-  className: string;
-  id: number;
-  uploaded_by: string;
-  file_url: string;
-  fileName: String;
-
-}
-
-const FileSearch: React.FC = () => {
-  
-  const [fileList, setFileList] = useState<File[] | null>(null);
-  const [text, setText] = useState<string>('');
-  
-
-  const getFiles = async function (className : string|null, token:string) {
-    if (!className) return;
-    console.log(className)
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
     const res = await fetch("/api/search", {
       method: 'POST',
       headers: {
@@ -68,7 +48,6 @@ const FileSearch: React.FC = () => {
         Authorization: `Bearer ${token}`,
       },
       credentials: "include",
-<<<<<<< HEAD
       body: JSON.stringify({ className, token }),
     });
 
@@ -76,21 +55,10 @@ const FileSearch: React.FC = () => {
     console.log(allData);
     setFileList(allData);
   };
-=======
-      body: JSON.stringify({className:className, token:token}),
-    })
-
-    const data = await res.json();
-    console.log(data)
-    console.log(data.message)
-    data.success && setFileList(data.message)
-  }
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const query = queryParams.get("q");
-<<<<<<< HEAD
 
     if (query && token) {
       getFiles(query, token);
@@ -171,27 +139,6 @@ const FileSearch: React.FC = () => {
         <h1>File Finder</h1>
       </div>
 
-=======
-    console.log(query); // "Math 224"
-
-    const token = document.cookie
-        .split("; ")
-        .find(row => row.startsWith("access_token="))?.split("=")[1];
-    console.log(token)
-    if (!token) {
-       console.log("No token found");
-       return;
-  }
-    getFiles(query,token);   
-    
-  },[])
-
-  return (
-    <div className='bg-gray-900 min-h-screen'>
-      <div className="title">
-        <h1>File Finder</h1>
-      </div>
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
       <div className="input__wrapper text-slate-900">
         <input
           type="text"
@@ -199,26 +146,17 @@ const FileSearch: React.FC = () => {
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-<<<<<<< HEAD
-=======
-
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
             if (!e.target.value) {
               setFileList(fileList);
             }
           }}
         />
-<<<<<<< HEAD
         <button onClick={() => getFiles(text, token)}>
-=======
-        <button onClick={() => getFiles(text)}>
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
           Search
         </button>
       </div>
 
       <div className="body">
-<<<<<<< HEAD
         {fileList?.length === 0 && <div className="notFound">No File Found</div>}
 
         {fileList?.length > 0 &&
@@ -282,32 +220,8 @@ const FileSearch: React.FC = () => {
           </div>
         </div>
       )}
-=======
-        {fileList?.length === 0 && (
-          <div className="notFound">No File Found</div>
-        )}
-
-        {fileList?.length > 0 && fileList?.map((file, index) => {
-          return (
-            <div className="body__item" key={index}>
-              <h3>Name: {file.fileName}</h3>
-              <p>Type: pdf</p>
-                <p className="">className : {file.className}</p>
-                <p className="">Uploaded by : {file.uploaded_by}</p>
-                <a href={file.file_url} download={file.file_url} target="_blank" className="download-link text-blue-500">View</a>
-
-            </div>
-            
-          );
-        })}
-      </div>
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
     </div>
   );
 };
 
-<<<<<<< HEAD
 export default FileSearch;
-=======
-export default FileSearch;
->>>>>>> 58d9416417b5ce668b8d324107dc89bb67e7d2a8
