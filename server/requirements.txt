@@ -5,3 +5,6 @@ bcrypt
 pyjwt
 psycopg[binary,pool]
 passlib[bcrypt]
+rake-nltk
+nltk
+pytest
