@@ -7,7 +7,7 @@ import { headers } from 'next/headers'
 export async function POST(req : Request) {
     const {className,token} = await req.json();
     const allData = []
-
+    
     const res =  await fetch(process.env.BACKEND_URL + "/get_courses",{
         method : "POST",
         body: JSON.stringify({ department:className}),
@@ -18,7 +18,7 @@ export async function POST(req : Request) {
         credentials: "include"
     }); 
 
-    const data = await res.json()
+    const {data} = await res.json()
     console.log(data.courses)
     // For each course, get the department name and course name. 
     // Then using those, get the section id 
@@ -39,15 +39,16 @@ export async function POST(req : Request) {
             credentials: "include"
         }); 
 
-        const sectionData = await res.json();
-        console.log(sectionData.sections)
+        const section= await res.json();
+        const sections = section.data
+        console.log(sections)
         
 
-        for (let j = 0; j < sectionData.sections.length; j++) {
-            let sectionId = sectionData.sections[j].id;
-            let instructor = sectionData.sections[j].instructor;
-            let year = sectionData.sections[j].year;
-            let semester = sectionData.sections[j].semester;
+        for (let j = 0; j < sections.sections.length; j++) {
+            let sectionId = sections.sections[j].id;
+            let instructor = sections.sections[j].instructor;
+            let year = sections.sections[j].year;
+            let semester = sections.sections[j].semester;
             
 
             const res =  await fetch(process.env.BACKEND_URL + "/get_notes_for_section",{

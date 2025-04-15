@@ -325,11 +325,7 @@ async def get_departments():
     Attempts to get the codes of all available departments
     """
     departments = await get_department_codes(db_conn_pool)
-    return JSONResponse(
-        content = {
-            "departments": departments
-        }
-    )
+    return JSONResponse(content={"success":True, "data":{"departments":departments}, "message": "Departments Returned Successfully!"},status_code=200,headers={"X-Error": "Custom Error"})
 
 @app.post("/get_courses")
 async def get_courses(request_data: GetCoursesRequestData):
@@ -338,11 +334,8 @@ async def get_courses(request_data: GetCoursesRequestData):
     """
     try:
         courses = await get_courses_for_department(db_conn_pool, request_data.department)
-        return JSONResponse(
-            content = {
-                "courses": courses
-            }
-        )
+        return JSONResponse(content={"success":True, "data":{"courses":courses}, "message": "Courses Returned Successfully!"},status_code=200,headers={"X-Error": "Custom Error"})
+    
     except DepartmentDoesNotExistException as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -368,11 +361,8 @@ async def get_sections(request_data: GetSectionsRequestData):
                     "semester": section.semester
                 }
             )
-        return JSONResponse(
-            content = {
-                "sections": serializable_sections
-            }
-        )
+        return JSONResponse(content={"success":True, "data":{"sections":serializable_sections}, "message": "Sections Returned Successfully!"},status_code=200,headers={"X-Error": "Custom Error"})
+    
     except DepartmentDoesNotExistException as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -420,7 +410,7 @@ async def delete_note(
         await delete_note_from_db(
             db_conn_pool, request_data.note_id, current_user.email
         )
-        return Response(content=None)
+        return JSONResponse(content={"success":True, "message": f"Note id {request_data.note_id} Deleted Successfully!"},status_code=200,headers={"X-Error": "Custom Error"})
     except NoteDoesNotExistException as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -23,11 +23,11 @@ interface Comment {
 const FileSearch: React.FC = () => {
   const [fileList, setFileList] = useState<File[] | null>(null);
   const [text, setText] = useState<string>('');
-  const [modalOpen, setModalOpen] = useState<boolean>(false); // State to control modal visibility
-  const [currentPdf, setCurrentPdf] = useState<string | null>(null); // State to hold the selected PDF content
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [currentPdf, setCurrentPdf] = useState<string | null>(null);
   const [comment, setComment] = useState<string>('');
   const [commentValues, setCommentValues] = useState<Comment[]>();
-  const [commentVisibility, setCommentVisibility] = useState<{ [key: number]: boolean }>({}); // Track visibility per note
+  const [commentVisibility, setCommentVisibility] = useState<{ [key: number]: boolean }>({});
 
   const token = document.cookie
     .split("; ")
@@ -77,11 +77,11 @@ const FileSearch: React.FC = () => {
     setCurrentPdf(null);
   };
 
-  const rateNote = async (noteId : number, rating : number) => {
+  const rateNote = async (noteId: number, rating: number) => {
     const res = await fetch("/api/noteRating", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ note_id: noteId, rating: rating, token:token }),
+      body: JSON.stringify({ note_id: noteId, rating, token }),
       credentials: 'include',
     });
 
@@ -93,7 +93,7 @@ const FileSearch: React.FC = () => {
     const res = await fetch("/api/getComment", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ note_id: noteId, token: token }),
+      body: JSON.stringify({ note_id: noteId, token }),
       credentials: 'include',
     });
 
@@ -106,7 +106,7 @@ const FileSearch: React.FC = () => {
   const toggleCommentVisibility = (noteId: number) => {
     setCommentVisibility((prev) => ({
       ...prev,
-      [noteId]: !prev[noteId], // Toggle visibility for the specific note
+      [noteId]: !prev[noteId],
     }));
   };
 
@@ -125,12 +125,37 @@ const FileSearch: React.FC = () => {
     const res = await fetch("/api/addComment", {
       method: 'POST',
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ note_id: noteId, parent_com_id: parent_com_id, content: content, token: token }),
+      body: JSON.stringify({ note_id: noteId, parent_com_id, content, token }),
       credentials: 'include',
     });
 
     const data = await res.json();
     console.log(data);
+  };
+
+  const deleteNote = async (noteId: number) => {
+    const confirmDelete = confirm("Are you sure you want to delete this note?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch("/api/deleteNote", {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ note_id: noteId, token:token}),
+      });
+
+      const result = await res.json();
+      console.log("Delete response:", result);
+
+      // Refresh UI
+      setFileList((prev) => prev?.filter((file) => file.id !== noteId) || null);
+    } catch (error) {
+      console.error("Failed to delete note:", error);
+    }
   };
 
   return (
@@ -151,9 +176,7 @@ const FileSearch: React.FC = () => {
             }
           }}
         />
-        <button onClick={() => getFiles(text, token)}>
-          Search
-        </button>
+        <button onClick={() => getFiles(text, token)}>Search</button>
       </div>
 
       <div className="body">
@@ -161,7 +184,16 @@ const FileSearch: React.FC = () => {
 
         {fileList?.length > 0 &&
           fileList.map((file) => (
-            <div className="body__item" key={file.id}>
+            <div className="body__item relative" key={file.id}>
+              {/* Delete Button */}
+              <button
+                onClick={() => deleteNote(file.id)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold text-lg"
+                title="Delete Note"
+              >
+                ✕
+              </button>
+
               <h3>Name: {file.name}</h3>
               <p>Type: pdf</p>
               <p>Class Name: {file.name}</p>
@@ -178,14 +210,20 @@ const FileSearch: React.FC = () => {
                     className="p-2 mr-2 text-slate-900 text-wrap"
                     placeholder="Add a comment"
                   />
-                  <button onClick={() => handleComment(file.id, null)} className="p-2 rounded-full border w-1/2 mt-2 active:scale-95 transition-all ease-in-out ">
+                  <button
+                    onClick={() => handleComment(file.id, null)}
+                    className="p-2 rounded-full border w-1/2 mt-2 active:scale-95 transition-all ease-in-out"
+                  >
                     Comment
                   </button>
                 </div>
               </div>
 
               <div className="flex flex-col items-center">
-                <button onClick={() => getComments(file.id)} className="border rounded-md active:scale-95 p-2">
+                <button
+                  onClick={() => getComments(file.id)}
+                  className="border rounded-md active:scale-95 p-2"
+                >
                   Show Comments
                 </button>
 
