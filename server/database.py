@@ -361,8 +361,8 @@ async def get_courses_for_department(db_conn_pool, department_code):
                 WITH department AS (
                     SELECT id FROM departments WHERE code = %s
                 )
-                SELECT courses.code FROM courses, department
-                WHERE courses.id = department.id
+                SELECT courses.code FROM courses
+                JOIN department ON courses.department_id = department.id
                 """,
                 (department_code,)
             )
