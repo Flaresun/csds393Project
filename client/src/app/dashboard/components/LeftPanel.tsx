@@ -51,11 +51,7 @@ const LeftPanel = (props : any) => {
                 </div>
                 <div onClick={(e)=> handleActive(e)} className={`flex flex-row items-start justify-start text-center p-2 ${active==="Support" && "bg-slate-200 rounded-md w-full" } mb-5 cursor-pointer`}> 
                     <FiMail   size={itemSize}/>
-                    <p className="ml-4">Support</p>
-                </div>
-                <div onClick={(e)=> handleActive(e)} className={`flex flex-row items-start justify-start text-center p-2 ${active==="Support" && "bg-slate-200 rounded-md w-full" } mb-5 cursor-pointer`}> 
-                    <FiMail   size={itemSize}/>
-                    <p className="ml-4">create</p>
+                    <p className="ml-4">Create</p>
                 </div>
             </div>
             )}
