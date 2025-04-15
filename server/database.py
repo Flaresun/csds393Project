@@ -147,6 +147,7 @@ async def create_new_section(db_conn_pool, department, course, instructor, year,
                     FROM course, faculty
                     RETURNING id
                     """,
+                    
                     (department.upper(), course.upper(), instructor, year, semester.lower())
                 )
                 # If we are trying to create a section that already exists, then the insertion will

@@ -2,7 +2,7 @@ export async function POST(req : Request) {
     const formData = await req.formData();
     const sectionId = formData.get("sectionId");
     const token = formData.get('token');
-    formData.append("section_id", sectionId)
+    formData.append("section_id", sectionId);
 
     
     const res = await fetch(process.env.BACKEND_URL + "/upload_note",{

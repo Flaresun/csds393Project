@@ -15,6 +15,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from psycopg_pool import AsyncConnectionPool
 
+from summary import get_top_keyphrases_from_note_comments
+
 from auth import ALGORITHM, authenticate_user, create_access_token_from_email, \
     get_user, get_password_hash, SECRET_KEY
 from database import CourseAlreadyExistsException, CourseDoesNotExistException, create_new_course, \
@@ -159,6 +161,7 @@ async def create_course(
         )
     try:
         await create_new_course(
+            # Takes in department code, course code and course name 
             db_conn_pool, request_data.department, request_data.code, request_data.name
         )
     except DepartmentDoesNotExistException as exc:
@@ -171,7 +174,7 @@ async def create_course(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="course already exists"
         ) from exc
-    return Response(content=None)
+    return JSONResponse(content={"success":True, "data":{"department":request_data.department, "code":request_data.code, "name":request_data.name}, "message": "Course Created Successfully!"},status_code=200,headers={"X-Error": "Custom Error"})
 
 @app.post("/create_section")
 async def create_section(
@@ -219,11 +222,9 @@ async def create_section(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="course already exists"
         ) from exc
-    return JSONResponse(
-        content = {
-            "id": section_id
-        }
-    )
+    return JSONResponse(content={"success":True, "data":{"department":request_data.department, "course":request_data.course,
+                                                          "instructor":request_data.instructor, "year":request_data.year, "semester":request_data.semester}, "message": "Section Created Successfully!"},status_code=200,headers={"X-Error": "Custom Error"})
+
 
 def create_serializable_note(note: Note) -> dict:
     """
@@ -603,6 +604,13 @@ async def get_comments_for_note(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="note does not exist"
         ) from exc
+
+
+@app.post("/get_comment_summary")
+async def get_comment_summary(request_data: GetCommentsForNoteRequestData):
+    res = await get_top_keyphrases_from_note_comments(db_conn_pool,request_data.note_id)
+    return JSONResponse(content={"success":True, "message":f"{res}"},status_code=200,headers={"X-Error": "Custom Error"})
+
 
 if __name__ == "__main__":
     import uvicorn
