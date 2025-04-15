@@ -78,9 +78,9 @@ CREATE TABLE note_ratings (
 ```
 CREATE TABLE comments (
 	id SERIAL PRIMARY KEY,
-	note_id INTEGER NOT NULL REFERENCES notes(id),
-	parent_comment_id INTEGER REFERENCES comments(id),
-	commenter_id INTEGER NOT NULL REFERENCES users(id),
+	note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+	parent_comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+	commenter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 	content TEXT NOT NULL
 )
 ```
