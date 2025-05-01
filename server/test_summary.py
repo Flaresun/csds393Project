@@ -50,11 +50,11 @@ def test_extract_keywords_from_commment():
     comment = ("AI and machine learning are changing the world. Companies are using them to analyze data and make "
           "predictions.")
 
-    print(summary.top_keyphrases_from_comment(comment))
+    print(summary.top_keyphrases_from_comment(comment, 3))
 
 def test_extract_keywords_from_note():
     note = (
         'basic algorithm techniques \n brute force: trying every possible combination until you find the solution \n '
         'divide and conquer: split task into pieces, solve on each piece, merge piece solutions into a total solution \n greedy: at each step, make the locally optimal choice \n dynamic programming: consider sub-problems, solve on each, combine to a global solution \n use a recurrence relation to define the algorithm \n will need to prove that we can combine optimal sub-solutions into a global solution \n each piece might be used many times in finding solution \n store solution to each sub-problem in a table so we can reuse it')
 
-    print(summary.top_keyphrases_from_note(note))
+    print(summary.top_keyphrases_from_note(note, 3))
