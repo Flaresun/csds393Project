@@ -6,8 +6,14 @@ from collections import namedtuple
 Note = namedtuple("Note", ["note_id", "section_id", "owner_id", "content", "content_type"])
 Comment = namedtuple("Comment", ["content"])
 
+
 @pytest.mark.asyncio
 async def test_get_top_keyphrases_from_note_comments():
+    """
+    Test keyphrase extraction from a list of comments associated with a note:
+    - Mocks comments containing repeated and unique keyphrases.
+    - Verifies that the top extracted keyphrases reflect frequency and relevance.
+    """
     mock_db_pool = AsyncMock()
     comments = [
         Comment("Dynamic programming is great."),
@@ -21,8 +27,14 @@ async def test_get_top_keyphrases_from_note_comments():
     assert "dynamic programming" in result
     assert "greedy" in result or "greedy algorithms" in result
 
+
 @pytest.mark.asyncio
 async def test_get_top_keyphrases_from_note():
+    """
+    Test keyphrase extraction from the binary content of a note:
+    - Mocks a note containing multiple algorithm descriptions.
+    - Checks that top keyphrases reflect the main concepts like binary search, merge sort, and hash tables.
+    """
     mock_db_pool = AsyncMock()
     note_text = (
         "Binary search is an efficient algorithm for finding an element in a sorted list. "
@@ -47,12 +59,21 @@ async def test_get_top_keyphrases_from_note():
 
 
 def test_extract_keywords_from_commment():
+    """
+    Test keyphrase extraction directly from a comment string:
+    - Prints the top 3 keyphrases extracted from a realistic comment about AI and data analysis.
+    """
     comment = ("AI and machine learning are changing the world. Companies are using them to analyze data and make "
-          "predictions.")
+               "predictions.")
 
     print(summary.top_keyphrases_from_comment(comment, 3))
 
+
 def test_extract_keywords_from_note():
+    """
+    Test keyphrase extraction directly from a raw note string:
+    - Prints the top 3 keyphrases from a note summarizing core algorithm techniques.
+    """
     note = (
         'basic algorithm techniques \n brute force: trying every possible combination until you find the solution \n '
         'divide and conquer: split task into pieces, solve on each piece, merge piece solutions into a total solution \n greedy: at each step, make the locally optimal choice \n dynamic programming: consider sub-problems, solve on each, combine to a global solution \n use a recurrence relation to define the algorithm \n will need to prove that we can combine optimal sub-solutions into a global solution \n each piece might be used many times in finding solution \n store solution to each sub-problem in a table so we can reuse it')

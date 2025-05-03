@@ -1,11 +1,19 @@
 import React from 'react';
-import { FaGithub , FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
-import {assets} from "../assets/asset.js";
+import { FaGithub, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { assets } from "../assets/asset.js";
 import Image from 'next/image';
+
+/**
+ * Footer component that renders the footer section of the page.
+ * It includes the logo, a brief description, quick links, social media links, and a copyright notice.
+ * 
+ * @returns {JSX.Element} The Footer component.
+ */
 const Footer = () => {
   return (
     <footer id="footer" className="bg-black text-white py-8 px-6">
       <div className="max-w-6xl mx-auto grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6 text-center md:text-left">
+        
         {/* Logo & Description */}
         <div>
           <Image src={assets.logo} alt="Logo" width={150}/>
@@ -30,7 +38,7 @@ const Footer = () => {
             <a href="https://github.com/Flaresun" className="text-gray-400 hover:text-violet-400"><FaGithub  size={24} /></a>
             <a href="#" className="text-gray-400 hover:text-violet-400"><FaTwitter size={24} /></a>
             <a href="#" className="text-gray-400 hover:text-violet-400"><FaInstagram size={24} /></a>
-            <a href="#https://www.linkedin.com/in/seth-omeike-1a2681260/" className="text-gray-400 hover:text-violet-400"><FaLinkedin size={24} /></a>
+            <a href="https://www.linkedin.com/in/seth-omeike-1a2681260/" className="text-gray-400 hover:text-violet-400"><FaLinkedin size={24} /></a>
           </div>
         </div>
       </div>

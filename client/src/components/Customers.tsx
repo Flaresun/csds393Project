@@ -1,5 +1,6 @@
 import React from 'react';
 
+// Sample testimonials data
 const testimonials = [
   { name: 'Alice', title: 'Professor', message: 'This platform has been a game changer for my students!' },
   { name: 'Bob', title: 'Student', message: 'I love how easy it is to find and organize my notes.' },
@@ -15,6 +16,12 @@ const testimonials = [
   { name: 'Leo', title: 'Guardian', message: 'User-friendly and highly recommended.' }
 ];
 
+/**
+ * Customers component displays testimonials from various users, including students, parents, professors, and guardians.
+ * It maps over a list of testimonials and renders each testimonial with the user's initials, name, title, and message.
+ * 
+ * @returns {JSX.Element} The Customers component.
+ */
 const Customers = () => {
   return (
     <div id="customers" className="bg-gradient-to-b from-black via-violet-900 to-black text-white py-12 px-6">

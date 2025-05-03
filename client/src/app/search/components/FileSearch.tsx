@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import './FileSearch.css';
+import React, { useEffect, useState, useContext } from "react";
+import "./FileSearch.css";
+import { AppContent } from "../../../context/AppContext";
 
 interface File {
   id: number;
@@ -9,7 +10,7 @@ interface File {
   instructor: string;
   semester: string;
   year: number;
-  content: string; // Base64 encoded string of PDF content
+  content: string;
 }
 
 interface Comment {
@@ -22,29 +23,32 @@ interface Comment {
 
 const FileSearch: React.FC = () => {
   const [fileList, setFileList] = useState<File[] | null>(null);
-  const [text, setText] = useState<string>('');
+  const [text, setText] = useState<string>("");
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
-  const [comment, setComment] = useState<string>('');
+  const [comment, setComment] = useState<string>("");
   const [commentValues, setCommentValues] = useState<Comment[]>();
   const [commentVisibility, setCommentVisibility] = useState<{ [key: number]: boolean }>({});
+  const [commentSummaries, setCommentSummaries] = useState<{ [key: number]: string[] | string }>({});
+  const { userRole } = useContext<any>(AppContent);
 
   const token = document.cookie
     .split("; ")
-    .find(row => row.startsWith("token="))?.split("=")[1];
+    .find((row) => row.startsWith("token="))
+    ?.split("=")[1];
 
   if (!token) {
     console.error("No token found");
-    return;
+    return null;
   }
 
   const getFiles = async (className: string | null, token: string) => {
     if (!className) return;
 
     const res = await fetch("/api/search", {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       credentials: "include",
@@ -82,25 +86,51 @@ const FileSearch: React.FC = () => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ note_id: noteId, rating, token }),
-      credentials: 'include',
+      credentials: "include",
     });
 
     const { comments } = await res.json();
     console.log(comments);
-  }
+  };
 
   const getComments = async (noteId: number) => {
     const res = await fetch("/api/getComment", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ note_id: noteId, token }),
-      credentials: 'include',
+      credentials: "include",
     });
 
     const { comments } = await res.json();
     console.log(comments);
     setCommentValues(comments);
     toggleCommentVisibility(noteId);
+  };
+
+  const getCommentSummary = async (noteId: number) => {
+    console.log(noteId);
+    try {
+      const res = await fetch("/api/commentSummary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ note_id: noteId }),
+      });
+
+      const { data } = await res.json();
+      console.log(data);
+      setCommentSummaries((prev) => ({
+        ...prev,
+        [noteId]: data || "No summary available.",
+      }));
+    } catch (error) {
+      console.error("Failed to fetch summary:", error);
+      setCommentSummaries((prev) => ({
+        ...prev,
+        [noteId]: "Failed to load summary.",
+      }));
+    }
   };
 
   const toggleCommentVisibility = (noteId: number) => {
@@ -120,13 +150,11 @@ const FileSearch: React.FC = () => {
       return;
     }
 
-    console.log(content);
-
     const res = await fetch("/api/addComment", {
-      method: 'POST',
+      method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ note_id: noteId, parent_com_id, content, token }),
-      credentials: 'include',
+      credentials: "include",
     });
 
     const data = await res.json();
@@ -144,14 +172,13 @@ const FileSearch: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        credentials: 'include',
-        body: JSON.stringify({ note_id: noteId, token:token}),
+        credentials: "include",
+        body: JSON.stringify({ note_id: noteId, token }),
       });
 
       const result = await res.json();
       console.log("Delete response:", result);
 
-      // Refresh UI
       setFileList((prev) => prev?.filter((file) => file.id !== noteId) || null);
     } catch (error) {
       console.error("Failed to delete note:", error);
@@ -185,19 +212,19 @@ const FileSearch: React.FC = () => {
         {fileList?.length > 0 &&
           fileList.map((file) => (
             <div className="body__item relative" key={file.id}>
-              {/* Delete Button */}
-              <button
-                onClick={() => deleteNote(file.id)}
-                className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold text-lg"
-                title="Delete Note"
-              >
-                ✕
-              </button>
+              {userRole == "faculty" && (
+                <button
+                  onClick={() => deleteNote(file.id)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold text-lg"
+                  title="Delete Note"
+                >
+                  ✕
+                </button>
+              )}
 
-              <h3>Name: {file.name}</h3>
+              <h3>Class Name: {file.name}</h3>
               <p>Type: pdf</p>
-              <p>Class Name: {file.name}</p>
-              <p>Uploaded by: {file.instructor}</p>
+              <p>Instructor: {file.instructor}</p>
 
               <div className="flex flex-col sm:flex-row items-center justify-between text-center">
                 <button onClick={() => openModal(file.content)}>View PDF</button>
@@ -219,7 +246,29 @@ const FileSearch: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center">
+              {/* Comment Summary Section */}
+              <div className="text-white mt-4">
+                <button
+                  className="underline text-sm mb-1"
+                  onClick={() => getCommentSummary(file.id)}
+                >
+                  Show Comment Summary
+                </button>
+
+                <div className="italic text-sm mt-1">
+                  {Array.isArray(commentSummaries[file.id]) ? (
+                    <ul className="list-disc ml-5">
+                      {(commentSummaries[file.id] as string[]).map((item, idx) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>{commentSummaries[file.id]}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center mt-4">
                 <button
                   onClick={() => getComments(file.id)}
                   className="border rounded-md active:scale-95 p-2"
@@ -249,11 +298,12 @@ const FileSearch: React.FC = () => {
           ))}
       </div>
 
-      {/* Fullscreen Modal to Display PDF */}
       {modalOpen && currentPdf && (
         <div className="modal">
           <div className="modal-content">
-            <button className="close" onClick={closeModal}>Close</button>
+            <button className="close" onClick={closeModal}>
+              Close
+            </button>
             <iframe src={`data:application/pdf;base64,${currentPdf}`} width="100%" height="100%" />
           </div>
         </div>

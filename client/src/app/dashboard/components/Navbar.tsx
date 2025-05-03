@@ -1,10 +1,9 @@
 "use client";
-import React, { useContext, useEffect, useRef } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { RxHamburgerMenu } from "react-icons/rx";
 import { assets } from '@/assets/asset';
 import { CiSearch } from "react-icons/ci";
 import Image from 'next/image';
-import { useState } from 'react';
 import { CiUser } from "react-icons/ci";
 import { MdOutlineLightMode } from "react-icons/md";
 import { MdOutlineDarkMode } from "react-icons/md";
@@ -13,19 +12,31 @@ import { MdOutlinePrivacyTip } from "react-icons/md";
 import { IoIosLogOut } from "react-icons/io";
 import { AppContent } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
+
 const Navbar = () => {
     const logoWidth : number = 100;
     const [profileModule, setProfileModule] = useState<boolean>(false);
-    const {panel, setPanel, setIsAuth} = useContext<any>(AppContent);
+    const {panel, setPanel, setIsAuth, userEmail} = useContext<any>(AppContent);
     const inputRef = useRef(null);
     const router = useRouter();
+
+    /**
+     * Toggles the state of the side panel.
+     */
     const handlePanel = () => {
         setPanel((prev : boolean) => !prev)
     }
+
+    /**
+     * Navigates to the dashboard when the logo is clicked.
+     */
     const handleLogo = () => {
         router.push("/dashboard")
     }
     
+    /**
+     * Handles the logout functionality, calling the logout API and redirecting to the homepage.
+     */
     const handleLogout = async () => {
         const data = await fetch("/api/logout", {
             method: "POST",
@@ -39,6 +50,9 @@ const Navbar = () => {
         router.push("/");
     }
 
+    /**
+     * Sets up a listener on the search bar to navigate to the search results when "Enter" is pressed.
+     */
     useEffect(() => {
         const inputField = document.getElementsByClassName("searchBar");
         for (let i = 0; i < inputField.length; i++) {
@@ -65,18 +79,16 @@ const Navbar = () => {
                     <input ref={inputRef} type="text" className="searchBar pl-2 bg-transparent border-none focus:outline-none placeholder-slate-900 sm:w-full lg:w-[40rem]" placeholder='Search for files' />
                 </div>
                 
-                
-
                 <div className="flex">
-                    <div onClick={() => setProfileModule((prev) => !prev)}className="flex border rounded-full px-4 py-2 bg-gray-400 text-slate-900 cursor-pointer">
-                        E
+                    <div onClick={() => setProfileModule((prev) => !prev)} className="flex border rounded-full px-4 py-2 bg-gray-400 text-slate-900 cursor-pointer z-[5]">
+                    {userEmail?.split("@")[0][0].toUpperCase()}
                         {profileModule && (
                         <div className="fixed top-20 right-8 px-5 bg-blue-500 text-2xl rounded-lg py-5">
                             <div className="flex items-center justify-center pb-5">
                                 <p className="border rounded-full px-4 py-2 bg-gray-400 text-slate-900 cursor-pointer mr-5">E</p>
                                 <div className="flex flex-col text-lg font-semibold">
-                                    <p className="">Name : John Doe</p>
-                                    <p className="text-sm">Email : email@gmail.com</p>
+                                    <p className="">Name : {userEmail?.split("@")[0]}</p>
+                                    <p className="text-sm">Email : {userEmail}</p>
                                 </div>
                             </div>
                             <div className="flex w-full bg-slate-900 h-[2px]"></div>
@@ -110,8 +122,6 @@ const Navbar = () => {
                     </div>
                 </div>
 
-                
-
             </div>
             {/**Search bar for small screens */}
             <div className="flex sm:hidden border items-center justify-start text-center bg-gray-400 text-slate-900 rounded-md mt-5 p-2">
@@ -122,4 +132,4 @@ const Navbar = () => {
     )
 }
 
-export default Navbar
+export default Navbar;

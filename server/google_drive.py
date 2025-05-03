@@ -30,12 +30,20 @@ credentials = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes
 drive_service = build("drive", "v3", credentials=credentials)
 
 
-
 def upload_to_drive(file: UploadFile):
+    """
+    Uploads a file to Google Drive and returns the file's URL.
+
+    Args:
+        file (UploadFile): The file to be uploaded.
+
+    Returns:
+        str: The URL of the uploaded file on Google Drive.
+    """
     file_metadata = {
         "name": file.filename,
-        "parents":[PARENT_FOLDER_ID]
-        }
+        "parents": [PARENT_FOLDER_ID]
+    }
 
     media = MediaIoBaseUpload(io.BytesIO(file.read()), mimetype="application/pdf")
 
@@ -46,6 +54,18 @@ def upload_to_drive(file: UploadFile):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """
+    Retrieves the current authenticated user based on the provided token.
+
+    Args:
+        token (str): The JWT token used for authentication.
+
+    Returns:
+        User: The authenticated user object.
+
+    Raises:
+        HTTPException: If the token is invalid or the user does not exist.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
@@ -61,12 +81,24 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user  # authenticated user object
 
 
-async def upload_file(db,email: str,className:str, file: UploadFile = File(...)):
+async def upload_file(db, email: str, className: str, file: UploadFile = File(...)):
+    """
+    Uploads a file to Google Drive and stores the file's metadata in the database.
+
+    Args:
+        db (Prisma): The database connection.
+        email (str): The email of the user uploading the file.
+        className (str): The name of the class associated with the file.
+        file (UploadFile): The file to be uploaded.
+
+    Returns:
+        str: A message indicating whether the file was uploaded successfully or an error message.
+    """
     # upload file to Google Drive
     file_metadata = {
         "name": file.filename,
-        "parents":[PARENT_FOLDER_ID]
-        }
+        "parents": [PARENT_FOLDER_ID]
+    }
     media = MediaIoBaseUpload(io.BytesIO(await file.read()), mimetype="application/pdf")
     uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
 
@@ -80,13 +112,13 @@ async def upload_file(db,email: str,className:str, file: UploadFile = File(...))
         prisma = Prisma()
         await prisma.connect()
         user = await prisma.note.create(
-                data={
-                    'uploaded_by': email,
-                    "className": className,
-                    "file_url":file_url,
-                    "name":file.filename
-                },
-            )
+            data={
+                'uploaded_by': email,
+                "className": className,
+                "file_url": file_url,
+                "name": file.filename
+            },
+        )
         await prisma.disconnect()
 
     except BaseException as e:

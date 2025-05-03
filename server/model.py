@@ -147,3 +147,15 @@ class Section(BaseModel):
     instructor: str
     year: int
     semester: str
+
+class GetRoleGivenEmailRequestData(BaseModel):
+    """
+    Represents the data contained in a /get_role_given_email request
+    """
+    email: str
+
+class GetRoleGivenUserIdRequestData(BaseModel):
+    """
+    Represents the data contained in a /get_role_given_id request
+    """
+    user_id: int

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
+// Type definition for Section
 type Section = { id: number; instructor: string, semester: string, year: number};
 
 const UploadPage = () => {
@@ -20,6 +21,10 @@ const UploadPage = () => {
     .find((row) => row.startsWith("token="))
     ?.split("=")[1];
 
+  /**
+   * Fetches departments from the API when the component mounts.
+   * This function is triggered by the `useEffect` hook when the component first renders.
+   */
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -38,6 +43,10 @@ const UploadPage = () => {
     fetchDepartments();
   }, []);
 
+  /**
+   * Fetches courses based on the selected department.
+   * Triggered whenever `selectedDepartment` changes.
+   */
   useEffect(() => {
     const fetchCourses = async () => {
       if (!selectedDepartment) return;
@@ -61,6 +70,10 @@ const UploadPage = () => {
     fetchCourses();
   }, [selectedDepartment]);
 
+  /**
+   * Fetches sections based on the selected course and department.
+   * Triggered whenever `selectedCourse` changes.
+   */
   useEffect(() => {
     const fetchSections = async () => {
       if (!selectedCourse) return;
@@ -71,7 +84,6 @@ const UploadPage = () => {
             'Content-Type': 'application/json',
             },
             body: JSON.stringify({ department : selectedDepartment, course: selectedCourse}),
-
         });
         const {data} = await res.json();
         console.log(data.sections[0].id)
@@ -84,12 +96,20 @@ const UploadPage = () => {
     fetchSections();
   }, [selectedCourse]);
 
+  /**
+   * Handles file input changes and updates the `file` state.
+   * @param {React.ChangeEvent<HTMLInputElement>} event - The file input change event.
+   */
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setFile(event.target.files[0]);
     }
   };
 
+  /**
+   * Uploads the selected file and related metadata (e.g., section ID) to the server.
+   * Displays a success or error message based on the outcome.
+   */
   const uploadFile = async () => {
     if (!file || !selectedSection) {
       setMessage("Please complete all selections and choose a file.");
@@ -163,7 +183,7 @@ const UploadPage = () => {
           <option value="">Select Section</option>
           {sections.map((section, index) => (
             <option key={index} value={section.id}>
-              Instructor: {section.instructor}|
+              Instructor: {section.instructor}| 
               Semester: {section.semester}| 
               Year: {section.year}
             </option>

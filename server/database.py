@@ -200,7 +200,7 @@ async def create_new_section(db_conn_pool, department, course, instructor, year,
 
 class UserDoesNotExistException(BaseException):
     """
-    Raised when we attempt to store a note belonging to a user that does not exist
+    Raised when we attempt to perform an operation involving a user that does not exist
     """
 
 class SectionDoesNotExistException(BaseException):
@@ -796,3 +796,38 @@ async def get_comments_for_note(db_conn_pool, note_id):
                     )
                 )
             return comments
+
+async def get_role_given_email(db_conn_pool, email):
+    """
+    Attempts to get the role of the user with the specified email
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT user_role FROM users WHERE email = %s
+                """,
+                (email,),
+            )
+            results = await cur.fetchall()
+            if len(results) == 0:
+                raise UserDoesNotExistException()
+            return results[0][0]
+
+
+async def get_role_given_user_id(db_conn_pool, user_id):
+    """
+    Attempts to get the role of the user with the specified user id
+    """
+    async with db_conn_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT user_role FROM users WHERE id = %s
+                """,
+                (user_id,),
+            )
+            results = await cur.fetchall()
+            if len(results) == 0:
+                raise UserDoesNotExistException()
+            return results[0][0]

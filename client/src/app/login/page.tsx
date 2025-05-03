@@ -4,27 +4,40 @@ import { LuEyeClosed } from "react-icons/lu";
 import { RxEyeOpen } from "react-icons/rx";
 import "../../components/Hero.css"; // Assuming this file exists for custom styles
 import { useRouter } from 'next/navigation'
-import { AppContent } from "@/context/AppContext";
+import { AppContent } from "../../context/AppContext";
 
 const AuthPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [formType, setFormType] = useState<"login" | "signup">("signup"); // Toggle between login and signup
   const [role, setRole] = useState<string>("Student"); // State for the role dropdown
-  const [email, setEmail] = useState<string>(""); // State for the role dropdown
-  const [password, setPassword] = useState<string>(""); // State for the role dropdown
-  const {setUserEmail} = useContext(AppContent)
+  const [email, setEmail] = useState<string>(""); // State for the email input
+  const [password, setPassword] = useState<string>(""); // State for the password input
+  const { setUserEmail } = useContext(AppContent);
   const router = useRouter();
-  // Toggle password visibility
+
+  /**
+   * Toggles the visibility of the password between text and password input types.
+   */
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // Handle role change (for sign-up form)
+  /**
+   * Handles the role change for the signup form.
+   * 
+   * @param e The change event of the select dropdown.
+   */
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRole(e.target.value);
   };
 
-  const handleSubmit = async (e : any) : Promise<any> => {
+  /**
+   * Handles the form submission for both login and signup.
+   * Makes a POST request to either /api/signup or /api/login depending on form type.
+   * 
+   * @param e The submit event for the form.
+   */
+  const handleSubmit = async (e: any): Promise<any> => {
     e.preventDefault();
     try {
       if (formType === "signup") {
@@ -34,14 +47,12 @@ const AuthPage = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email:email, password:password, role:role.toLowerCase() }),
+          body: JSON.stringify({ email, password, role: role.toLowerCase() }),
           credentials: 'include',
-        })
+        });
 
         const data = await res.json();
-        console.log(data)
-        setUserEmail(data.user.email)
-        console.log(document.cookie)
+        setUserEmail(data.user.email);
         data.success && router.push("/dashboard"); 
       } else {
         // Login Attempt 
@@ -50,20 +61,18 @@ const AuthPage = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email:email, password:password}),
+          body: JSON.stringify({ email, password }),
           credentials: 'include',
-        })
+        });
 
         const data = await res.json();
-        console.log(data)
-        setUserEmail(data.user.email)
-        console.log(document.cookie)
-        data.success && router.push("/dashboard"); 
+        setUserEmail(data.user.email);
+        data.success && router.push("/dashboard");
       }
-    } catch (err) {("/api/signup")
-      console.log(err)
+    } catch (err) {
+      console.log(err);
     }
-  }
+  };
 
   return (
     <div id="gradient" className="flex justify-center items-center min-h-screen bg-black text-white">
